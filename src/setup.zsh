@@ -18,6 +18,7 @@ Options
     -t, --temp      Temporary directory for downloads and build artifacts (Default $BI_SYSTEM_TMP)
     -m, --manifest  Directory where manifest files are stored (Default $BI_SYSTEM_TMP/bi/manifests)
     -a, --archive   Create tar.xz archives of the built install
+    -f, --from      Alternative csv file containg list of utilities (Default $BI_SYSTEM_FILE)   
     -n, --nocolor   Plain output
 $1"
     if [[ -n $1 ]]; then
@@ -32,6 +33,7 @@ parse() {
     opts[-p]="$BI_SYSTEM_PREFIX"
     opts[-t]="$BI_SYSTEM_TMP"
     opts[-m]="$BI_SYSTEM_TMP/bi/manifests"
+    opts[-f]="$BI_SYSTEM_FILE"
     zparseopts -A opts -D -E -F -K \
         h -help=h \
         v -verbose=v \
@@ -41,6 +43,7 @@ parse() {
         u: -utility:=u \
         t: -temp:=t \
         m: -manifest:=m \
+        f: -from:=f \
         n -nocolor=n \
         2>/dev/null || usage "ERROR: Invalid option entered or missing argument\n"
     print "command = <$1>"
@@ -75,11 +78,21 @@ parse() {
         DEBUG=OFF
     fi
 
+    # Store archives of install
+    if [[ -v opts[-a] ]]; then
+        INSTALL_ARCHIVE=ON
+    else
+        INSTALL_ARCHIVE=OFF
+    fi
+
     # Different temp directory
     INSTALL_TEMP="${opts[-t]#=}"
 
     # Different manifest directory
     INSTALL_MANIFESTS="${opts[-m]#=}"
+
+    # Different utilities file
+    INSTALL_UTILITIES_FILE="${opts[-f]#=}"
 
     # Turn on verbose mode
     if [[ -v opts[-v] ]]; then
@@ -104,9 +117,15 @@ parse() {
 setup() {
     # Assert that we have an install command
     if [[ ! -n INSTALL_COMMAND ]]; then
-        print -u 2 "ERROR: Missing install command"
+        print -u2 "ERROR: Missing install command"
         exit 2
     fi
+    # Check that the csv file exists
+    if [[ ! -f "$INSTALL_UTILITIES_FILE" ]]; then
+        print -u2 "ERROR: Missing $INSTALL_UTILITIES_FILE"
+        exit 2
+    fi
+
     # Custom settings for specific systems
     INSTALL_SYSTEM=$(uname)
     case "$INSTALL_SYSTEM" in

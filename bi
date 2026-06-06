@@ -17,15 +17,19 @@ BI_STARTTIME="${EPOCHSECONDS}"
 BI_DIRECTORY="${0:A:h}"
 BI_SYSTEM_PREFIX="/usr/local"
 BI_SYSTEM_TMP="/tmp"
+BI_SYSTEM_FILE="utilities.csv"
 
 source "$BI_DIRECTORY/src/setup.zsh"
 source "$BI_DIRECTORY/src/utility.zsh"
+source "$BI_DIRECTORY/src/main.zsh"
+source "$BI_DIRECTORY/src/download.zsh"
+source "$BI_DIRECTORY/src/build.zsh"
 
 parse "$@"
 setup
+main
 
-
-print "$INSTALL_COMMAND $INSTALL_PREFIX $CONCURRENT_JOBS"
-if [[ -n "$INSTALL_UTILITY" ]]; then
-    print "$INSTALL_UTILITY"
-fi
+# print "$INSTALL_COMMAND $INSTALL_PREFIX $CONCURRENT_JOBS"
+# if [[ -n "$INSTALL_UTILITY" ]]; then
+#     print "$INSTALL_UTILITY"
+# fi

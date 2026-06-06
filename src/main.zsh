@@ -1,0 +1,28 @@
+# Main routine
+
+main() {
+    local line
+    local name kind config_options alt_options directory
+    local download_command download_url download_branch download_sig
+    local extract_strip
+
+    while IFS= read -r line; do
+        [[ $line == '#'* || -z $line ]] && continue
+        IFS=';' read -r \
+            name \
+            kind \
+            config_options \
+            alt_options \
+            directory \
+            download_command \
+            download_url \
+            download_branch \
+            download_sig \
+            extract_strip \
+            <<< "$line"
+        print "<$name> <$kind> <$config_options> <$alt_options> <$directory> <$download_command> <$download_url> <$download_branch> <$download_sig> <$extract_strip>"
+        download "$name" "$download_command" "$download_url" "$download_branch" "$download_sig" "$extract_strip"    
+        build "$name" "$kind" "$config_options" "$alt_options" "$directory"
+    done < "$INSTALL_UTILITIES_FILE"
+}
+
