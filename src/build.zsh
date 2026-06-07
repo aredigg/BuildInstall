@@ -33,7 +33,7 @@ build() {
 
     # Call build/install routines
     case "$kind" in
-        configure) build_configure "$name" "$src" "$bld" "$config" ;;
+        configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
     esac
     
     # Post manifest and complete manifest
@@ -61,9 +61,94 @@ build() {
     fi
 }
 
+uninstall_manifested() {
+    local name="${1}"
+    if [ -f "$INSTALL_MANIFESTS/${name}.manifest" ]; then
+        # load all filenames from the manifest file
+        local files=( "${(@f)$(< "$manifest_file")}" )
+        if (( ${#files} == 0 )); then
+            # empty
+            return
+        fi
+        # extract the directory names from the filenames and sort
+        local -U directories=( "${files:h}" )
+        directories=( "${(O)directories[@]}" )
+        # remove the files
+        for file in "${files[@]}"; do
+            if [[ -f "$file" || -L "$file" ]]; then
+                rm -f "$file"
+            fi
+        done
+        # attempt to remove directories if empty
+        for directory in "${directories[@]}"; do
+            if [[ -d "$directory" ]]; then
+                rmdir "$directory" 2>/dev/null || true
+            fi
+        done
+        # finally remove the manifest file
+        rm -f "$INSTALL_MANIFESTS/${name}.manifest"
+    fi
+}
+
 build_configure() {
     local name="${1}"
     local source_directory="${2}"
     local build_directory="${3}"
-    local configure_options"${4}"
+    local configure_options
+    configure_options+="--prefix=$INSTALL_PREFIX"
+    configure_options+=( "${(@s:,:)4}" )
+    # We use alt_options if we need a custom autoconf script or similar to create configure
+    local configure_custom="${5}"
+
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        # If we are installing, find how to configure
+        if [[ -n $configure_custom ]]; then
+            pushd "$source_directory" > /dev/null
+            if [[ -f "$configure_custom" ]]; then
+                "./$configure_custom"
+            fi
+            popd > /dev/null
+        fi
+        if [[ -f "${source_directory}/configure" ]]; then
+            "${source_directory}/configure" $configure_options
+        elif [[ -f "${source_directory}/Configure" ]]; then
+            "${source_directory}/Configure" $configure_options
+        elif [[ -f "${source_directory}/bootstrap" ]]; then
+            if ! "${source_directory}/bootstrap" $configure_options; then
+                 "${source_directory}/bootstrap" --force
+            fi
+            if [[ -f "${source_directory}/configure" ]]; then
+                "${source_directory}/configure" $configure_options
+            fi
+        else
+            pushd "$source_directory" > /dev/null
+            if [[ -f "configure.ac" ]]; then
+                autoreconf --force --install
+            else
+                print "Missing configurer, $PWD"
+            fi
+            popd > /dev/null
+            if [[ -f "${source_directory}/configure" ]]; then
+                "${source_directory}/configure" $configure_options
+            fi
+        fi
+        # We should now make
+        build_make "$name"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
+}
+
+build_make() {
+    local name="${1}"
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        # Now attempt to make, if it fails try not concurrent
+        $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS || $BUILD_MAKE_TOOL
+        # Remove old install
+        uninstall_manifested "$name"
+        # Install the built utility
+        sudo $BUILD_MAKE_TOOL install
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
 }
