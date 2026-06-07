@@ -152,6 +152,11 @@ setup() {
         "$INSTALL_MANIFESTS"
     BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/out.log"
     BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/err.log"
+    # Check if we have gnumake
+    BUILD_MAKE_TOOL="make"
+    if command -v gnumake >/dev/null 2>&1; then
+        BUILD_MAKE_TOOL="gnumake"
+    fi
     # Redirect standard out and error
     exec >"$BUILD_LOG_OUT" 2>"$BUILD_LOG_ERR"
     # Keep sudo alive
