@@ -16,4 +16,10 @@ sudo_validate() {
     fi
 }
 
-
+debug_print() {
+    output="${1}"
+    if [[ $DEBUG == ON ]]; then
+        TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
+        print "DEBUG [$timefmt]: ${output}" > /dev/tty
+    fi
+}

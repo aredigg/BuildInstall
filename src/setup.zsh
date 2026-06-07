@@ -46,9 +46,9 @@ parse() {
         f: -from:=f \
         n -nocolor=n \
         2>/dev/null || usage "ERROR: Invalid option entered or missing argument\n"
-    print "command = <$1>"
-    print "options = <${(k)opts}>"
-    print "remaining = <$@>"
+    # print "command = <$1>"
+    # print "options = <${(k)opts}>"
+    # print "remaining = <$@>"
 
     # Set the install prefix
     INSTALL_PREFIX="${opts[-p]#=}"
@@ -115,16 +115,19 @@ parse() {
 }
 
 setup() {
+    debug_print "Entering setup"
     # Assert that we have an install command
     if [[ ! -n INSTALL_COMMAND ]]; then
         print -u2 "ERROR: Missing install command"
         exit 2
     fi
+    debug_print "Install command is <$INSTALL_COMMAND>"
     # Check that the csv file exists
     if [[ ! -f "$INSTALL_UTILITIES_FILE" ]]; then
         print -u2 "ERROR: Missing $INSTALL_UTILITIES_FILE"
         exit 2
     fi
+    debug_print "Using csv file <$INSTALL_UTILITIES_FILE>"
 
     # Custom settings for specific systems
     INSTALL_SYSTEM=$(uname)
@@ -134,6 +137,7 @@ setup() {
             export MACOSX_DEPLOYMENT_TARGET="$(xcrun --show-sdk-platform-version)"
             local cpus="$(getconf _NPROCESSORS_ONLN)"
             CONCURRENT_JOBS=$(( $cpus + $cpus >> 1))
+            debug_print "MacOS SDK <$MACOS_SDK_PATH> <$MACOSX_DEPLOYMENT_TARGET> Job target <$CONCURRENT_JOBS>"
             ;;
         *) 
             print -u 2 "ERROR: Not on a supported system" 
@@ -152,13 +156,19 @@ setup() {
         "$INSTALL_MANIFESTS"
     BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/out.log"
     BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/err.log"
+    debug_print "Logs at O <$BUILD_LOG_OUT> E <$BUILD_LOG_ERR>"
+    debug_print "Working in <$INSTALL_TEMP>"
     # Check if we have gnumake
     BUILD_MAKE_TOOL="make"
     if command -v gnumake >/dev/null 2>&1; then
         BUILD_MAKE_TOOL="gnumake"
     fi
+    debug_print "Make tool is <$BUILD_MAKE_TOOL>"
     # Redirect standard out and error
     exec >"$BUILD_LOG_OUT" 2>"$BUILD_LOG_ERR"
+    # We need sudo access to install
+    sudo -K
+    sudo -vp "Please enter password to allow system install: "
     # Keep sudo alive
     { while kill -O "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
     BI_SUDO_PID=$!
@@ -166,5 +176,6 @@ setup() {
     TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
     print -ru1 $timefmt
     print -ru2 $timefmt
+    debug_print "Setup complete"
 }
 
