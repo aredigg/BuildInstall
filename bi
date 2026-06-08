@@ -29,6 +29,7 @@ parse "$@"
 setup
 main
 
+print $LIBTOOLIZE
 # print "$INSTALL_COMMAND $INSTALL_PREFIX $CONCURRENT_JOBS"
 # if [[ -n "$INSTALL_UTILITY" ]]; then
 #     print "$INSTALL_UTILITY"

@@ -18,7 +18,7 @@ Options
     -t, --temp      Temporary directory for downloads and build artifacts (Default $BI_SYSTEM_TMP)
     -m, --manifest  Directory where manifest files are stored (Default $BI_SYSTEM_TMP/bi/manifests)
     -a, --archive   Create tar.xz archives of the built install
-    -f, --from      Alternative csv file containg list of utilities (Default $BI_SYSTEM_FILE)   
+    -f, --from      Alternative csv file containg list of utilities  
     -n, --nocolor   Plain output
 $1"
     if [[ -n $1 ]]; then
@@ -33,7 +33,7 @@ parse() {
     opts[-p]="$BI_SYSTEM_PREFIX"
     opts[-t]="$BI_SYSTEM_TMP"
     opts[-m]="$BI_SYSTEM_TMP/bi/manifests"
-    opts[-f]="$BI_SYSTEM_FILE"
+    opts[-f]=""
     zparseopts -A opts -D -E -F -K \
         h -help=h \
         v -verbose=v \
@@ -122,15 +122,15 @@ setup() {
         exit 2
     fi
     debug_print "Install command is <$INSTALL_COMMAND>"
-    # Check that the csv file exists
-    if [[ ! -f "$INSTALL_UTILITIES_FILE" ]]; then
-        print -u2 "ERROR: Missing $INSTALL_UTILITIES_FILE"
-        exit 2
-    fi
-    debug_print "Using csv file <$INSTALL_UTILITIES_FILE>"
 
     # Custom settings for specific systems
     INSTALL_SYSTEM=$(uname)
+    if [[ -f "$BI_DIRECTORY/src/$INSTALL_SYSTEM/patch.zsh" ]]; then
+        source "$BI_DIRECTORY/src/$INSTALL_SYSTEM/patch.zsh"
+        platform_setup
+    else
+        print -u 2 "ERROR: Not on a supported system"
+    fi
     case "$INSTALL_SYSTEM" in
         Darwin)
             MACOS_SDK_PATH="$(xcrun --show-sdk-path)"
@@ -143,6 +143,16 @@ setup() {
             print -u 2 "ERROR: Not on a supported system" 
             ;;
     esac
+    # Check that the csv file exists
+    if [[ ! -n "$INSTALL_UTILITIES_FILE" ]]; then
+        INSTALL_UTILITIES_FILE="$BI_DIRECTORY/src/$INSTALL_SYSTEM/$BI_SYSTEM_FILE"
+    fi
+    if [[ ! -f "$INSTALL_UTILITIES_FILE" ]]; then
+        print -u2 "ERROR: Missing $INSTALL_UTILITIES_FILE"
+        exit 2
+    fi
+    debug_print "Using csv file <$INSTALL_UTILITIES_FILE>"
+
     # Setup directories
     BUILD_SOURCES_DIRECTORY="${INSTALL_TEMP}/bi/sources"
     BUILD_BUILDS_DIRECTORY="${INSTALL_TEMP}/bi/builds"

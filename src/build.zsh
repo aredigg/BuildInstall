@@ -10,7 +10,16 @@ build() {
     local base="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
     local src="$BUILD_SOURCES_DIRECTORY/${base}/${directory}"
     local bld="$BUILD_BUILDS_DIRECTORY/${name}"
+
+    if [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+        return
+    fi
+
     debug_print "Preparing to build <$name> ($base)"
+
+    # Checking for patches
+    pre_patch "$name" "$src"
 
     # Remove build directory
     if [[ -d "$bld" ]]; then sudo rm -rf "$bld"; fi
@@ -19,7 +28,7 @@ build() {
     # Skip if same is built/installed already
     if [[ -f "$INSTALL_MANIFESTS/${name}.pre-manifest" ]]; then
         rm "$INSTALL_MANIFESTS/${name}.pre-manifest"
-    elif [[ -f "${INSTALL_MANIFESTS}/${name}.current" && -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then
+    elif [[ -f "$INSTALL_MANIFESTS/${name}.manifest" && -f "${INSTALL_MANIFESTS}/${name}.current" && -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then
         if [[ "$(<${INSTALL_MANIFESTS}/${name}.current)" == "$(<${INSTALL_MANIFESTS}/${name}.old)" ]]; then
             debug_print "Already built and installed"
             return
@@ -40,6 +49,9 @@ build() {
     case "$kind" in
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
     esac
+
+    # Checking for patches
+    post_patch "$name"
     
     # Post manifest and complete manifest
     if [[ $INSTALL_COMMAND == "install" ]]; then
@@ -58,12 +70,6 @@ build() {
         fi
     fi
 
-    # Cleanup
-    if [[ $INSTALL_COMMAND == "remove" ]]; then
-        debug_print "Mainfest cleanup"
-        rm "$INSTALL_MANIFESTS/${name}.pre-manifest"
-    fi 
- 
     if [[ -f "${INSTALL_MANIFESTS}/${name}.current" ]]; then
         mv "${INSTALL_MANIFESTS}/${name}.current" "${INSTALL_MANIFESTS}/${name}.old"
     fi
@@ -77,6 +83,8 @@ uninstall_manifested() {
         # load all filenames from the manifest file
         local files=( "${(@f)$(< "$INSTALL_MANIFESTS/${name}.manifest")}" )
         if (( ${#files} == 0 )); then
+            debug_print "Manifest file <$INSTALL_MANIFESTS/${name}.manifest> is empty!"
+            rm -f "$INSTALL_MANIFESTS/${name}.manifest"
             # empty
             return
         fi
