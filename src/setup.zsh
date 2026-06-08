@@ -115,13 +115,11 @@ parse() {
 }
 
 setup() {
-    debug_print "Entering setup"
     # Assert that we have an install command
     if [[ ! -n INSTALL_COMMAND ]]; then
         print -u2 "ERROR: Missing install command"
         exit 2
     fi
-    debug_print "Install command is <$INSTALL_COMMAND>"
 
     # Custom settings for specific systems
     INSTALL_SYSTEM=$(uname)
@@ -130,19 +128,8 @@ setup() {
         platform_setup
     else
         print -u 2 "ERROR: Not on a supported system"
+        exit 2
     fi
-    case "$INSTALL_SYSTEM" in
-        Darwin)
-            MACOS_SDK_PATH="$(xcrun --show-sdk-path)"
-            export MACOSX_DEPLOYMENT_TARGET="$(xcrun --show-sdk-platform-version)"
-            local cpus="$(getconf _NPROCESSORS_ONLN)"
-            CONCURRENT_JOBS=$(( $cpus + $cpus >> 1))
-            debug_print "MacOS SDK <$MACOS_SDK_PATH> <$MACOSX_DEPLOYMENT_TARGET> Job target <$CONCURRENT_JOBS>"
-            ;;
-        *) 
-            print -u 2 "ERROR: Not on a supported system" 
-            ;;
-    esac
     # Check that the csv file exists
     if [[ ! -n "$INSTALL_UTILITIES_FILE" ]]; then
         INSTALL_UTILITIES_FILE="$BI_DIRECTORY/src/$INSTALL_SYSTEM/$BI_SYSTEM_FILE"
@@ -151,7 +138,6 @@ setup() {
         print -u2 "ERROR: Missing $INSTALL_UTILITIES_FILE"
         exit 2
     fi
-    debug_print "Using csv file <$INSTALL_UTILITIES_FILE>"
 
     # Setup directories
     BUILD_SOURCES_DIRECTORY="${INSTALL_TEMP}/bi/sources"
@@ -166,14 +152,11 @@ setup() {
         "$INSTALL_MANIFESTS"
     BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/out.log"
     BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/err.log"
-    debug_print "Logs at O <$BUILD_LOG_OUT> E <$BUILD_LOG_ERR>"
-    debug_print "Working in <$INSTALL_TEMP>"
     # Check if we have gnumake
     BUILD_MAKE_TOOL="make"
     if command -v gnumake >/dev/null 2>&1; then
         BUILD_MAKE_TOOL="gnumake"
     fi
-    debug_print "Make tool is <$BUILD_MAKE_TOOL>"
     # Redirect standard out and error
     exec >"$BUILD_LOG_OUT" 2>"$BUILD_LOG_ERR"
     # We need sudo access to install
@@ -186,6 +169,5 @@ setup() {
     TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
     print -ru1 $timefmt
     print -ru2 $timefmt
-    debug_print "Setup complete"
 }
 

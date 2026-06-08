@@ -16,10 +16,34 @@ sudo_validate() {
     fi
 }
 
+status_print() {
+    local name="${1}"
+    local pstatus="${2}"
+    local message="${3}"
+    local elapsed=$(elapsed_time)
+    local output
+    case "$pstatus" in
+        D) output="DONE" ;;
+        I) output="INFO" ;;
+        A) output="ATTN" ;;
+        W) output="WARN" ;;
+        F) output="FAIL" ;;
+        *) output="DEBUG" ;;
+    esac
+    print -f "%s %s [%-25.25s] %-30.30s\r" "$output" "$elapsed" "$name" "$message" > /dev/tty
+}
+
 debug_print() {
     output="${1}"
+    status_code="${2}"
     if [[ $DEBUG == ON ]]; then
         TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
-        print "DEBUG [$timefmt]: ${output}" > /dev/tty
+        if [[ -n $status_code ]]; then
+            if [[ $status_code -gt 0 ]]; then
+                print "DEBUG [$timefmt]: ERROR ${status_code} ${output}" > /dev/tty
+            fi
+        else
+            print "DEBUG [$timefmt]: ${output}" > /dev/tty
+        fi
     fi
 }

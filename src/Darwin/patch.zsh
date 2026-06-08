@@ -6,7 +6,6 @@ platform_setup() {
     export MACOSX_DEPLOYMENT_TARGET="$(xcrun --show-sdk-platform-version)"
     local cpus="$(getconf _NPROCESSORS_ONLN)"
     CONCURRENT_JOBS=$(( $cpus + $cpus >> 1))
-    debug_print "MacOS SDK <$MACOS_SDK_PATH> <$MACOSX_DEPLOYMENT_TARGET> Job target <$CONCURRENT_JOBS>"
 }
 
 # Patches applied after download, before build/install
