@@ -10,7 +10,6 @@
 # download_sig       - link to signature/hash, for git to retireve a specific commit hash
 # extract_strip      - strip root directory name when extracting (YES)
 # manifesting        - directories to be manifested outside of INSTALL_PREFIX, separated by comma
-# --nooptions;--thisisnothing="c -O2"
 # /Library/Frameworks/Python.framework,/Applications/Python*
 # M4 (GNU)
 m4,configure,,,,https,https://ftp.gnu.org/gnu/m4/m4-latest.tar.xz,,https://ftp.gnu.org/gnu/m4/m4-latest.tar.xz.sig,,
