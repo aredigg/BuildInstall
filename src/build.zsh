@@ -10,8 +10,7 @@ build() {
     local base="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
     local src="$BUILD_SOURCES_DIRECTORY/${base}/${directory}"
     local bld="$BUILD_BUILDS_DIRECTORY/${name}"
-
-    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+    local dirs
 
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -46,6 +45,10 @@ build() {
     # Call build/install routines
     case "$kind" in
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
+        cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
+        meson) build_meson "$name" "$src" "$bld" "$config" ;;
+        prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
+        custom) ;;
     esac
 
     # Checking for patches
@@ -74,6 +77,7 @@ build() {
 
 uninstall_manifested() {
     local name="${1}"
+    local file directory
     if [ -f "$INSTALL_MANIFESTS/${name}.manifest" ]; then
         status_print $name I "Uninstalling"
         # load all filenames from the manifest file
@@ -104,6 +108,72 @@ uninstall_manifested() {
     fi
 }
 
+build_cmake() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local cmake_options=(
+        "-Wno-dev"    
+        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"    
+        '-DCMAKE_INSTALL_RPATH=@loader_path/../lib'    
+        "-DCMAKE_BUILD_TYPE=Release"    
+        "-DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX"    
+        "-DBUILD_SHARED_LIBS=TRUE"    
+    )
+    if [[ $name != "ninja" ]]; then    
+        cmake_options+=("-GNinja")    
+    fi
+    cmake_options+=( "${(@s:;:)4}" )
+
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Configuring"
+        if [[ -n $build_directory ]]; then
+            mkdir -p "$build_directory"
+            cd "$build_directory"
+        fi
+        $INSTALL_PREFIX/bin/cmake $cmake_options "$source_directory"
+        status_print $name I "Building"
+        $INSTALL_PREFIX/bin/cmake --build . --parallel=$CONCURRENT_JOBS
+        uninstall_manifested "$name"
+        status_print $name I "Installing"
+        sudo $INSTALL_PREFIX/bin/cmake --install .
+        status_print $name D "Install completed"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
+}
+
+build_meson() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local meson_options=(
+        "setup"
+        "--buildtype" "release"
+        "-Ddefault_library=shared"
+        "--prefix=$INSTALL_PREFIX"    
+    )
+    meson_options+=( "${(@s:;:)4}" )
+    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Configuring"
+        if [[ -n $build_directory ]]; then
+            mkdir -p "$build_directory"
+            cd "$build_directory"
+        fi
+        meson $meson_options "$build_directory"
+        status_print $name I "Building"
+        meson compile -C "$build_directory"
+        uninstall_manifested "$name"
+        status_print $name I "Installing"
+        sudo meson install -C "$build_directory"
+        status_print $name D "Install completed"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
+}
+
 build_configure() {
     local name="${1}"
     local source_directory="${2}"
@@ -113,6 +183,7 @@ build_configure() {
     configure_options+=( "${(@s:;:)4}" )
     # We use alt_options if we need a custom autoconf script or similar to create configure
     local configure_custom="${5}"
+    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Configuring"
@@ -177,5 +248,51 @@ build_make() {
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
+    fi
+}
+
+no_build() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local install_options
+    install_options+=( "${(@s:;:)4}" )
+    # We use alt_options for a script to install if available, otherwise name of directory under install prefix
+    local install_script="${5}"
+    local custom_directory="$install_script"
+    uninstall_manifested "$name"
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Installing"
+        if [[ -n "$install_script" ]]; then
+            if [[ -x "${source_directory}/${install_script}" ]]; then
+                sudo "${source_directory}/${install_script}" "$install_options"
+            else
+                if [[ -d "${source_directory}/${custom_directory}" ]]; then
+                    mkdir -p "$INSTALL_PREFIX/${custom_directory}"
+                    sudo cp -rPf $source_directory/* "$INSTALL_PREFIX/${custom_directory}/"
+                fi
+            fi
+        else
+            count_files=( "$source_directory"/*(.N) )
+            if (( ${#count_files} == 1 )); then
+                sudo cp -Pf "$count_files[1]" "$INSTALL_PREFIX/bin/"
+            else
+                local directories=(bin etc include lib libexec man sbin share)
+                local directory
+                for directory in "${directories[@]}"; do
+                    if [[ ! -d "$source_directory/$directory" ]]; then
+                        # TODO 
+                        status_print $name W "Unsupported"
+                        return
+                    fi
+                done
+                for directory in "${directories[@]}"; do
+                    if [[ -d "$source_directory/$directory" ]]; then
+                        sudo cp -rPf "$source_directory/$directory" "$INSTALL_PREFIX/"
+                    fi
+                done
+            fi
+        fi
+        status_print $name D "Install completed"
     fi
 }

@@ -1,5 +1,5 @@
 TODO LIST
 
-* Check signatures
+* Check signatures (gnupg) (codesign -d -vv /usr/local/lib/libomp.dylib)
 * Better retries
 

@@ -5,5 +5,14 @@ libtool (GNU) (versioned) -- different from macOS builtin,libtool,configure,--pr
 autoconf (GNU) -- Requires m4;perl (from macOS),autoconf,configure,,,,https,https://ftp.gnu.org/gnu/autoconf/autoconf-latest.tar.xz,,https://ftp.gnu.org/gnu/autoconf/autoconf-latest.tar.xz.sig,,
 automake (GNU) (versioned) -- Requires autoconf,automake,configure,,,,https,https://ftp.gnu.org/gnu/automake/automake-1.18.1.tar.xz,,https://ftp.gnu.org/gnu/automake/automake-1.18.1.tar.xz.sig,,
 pkgconf -- Requires automake/autoconf;libtool,pkgconf,configure,--with-system-libdir=/usr/lib:${MACOS_SDK_PATH}/usr/lib;--with-system-includedir=/usr/include:${MACOS_SDK_PATH}/usr/include,,,git,https://github.com/pkgconf/pkgconf.git,master,,,
+libunistring (GNU) -- ,libunistring,configure,,,,https,https://ftp.gnu.org/gnu/libunistring/libunistring-latest.tar.xz,,https://ftp.gnu.org/gnu/libunistring/libunistring-latest.tar.xz.sig,,
+gettext (GNU) (versioned) - Requires libunistring;libxml2 (from macOS);ncurses (from macOS),gettext,configure,--disable-csharp;--with-included-gettext;--with-included-glib;--with-included-libcroco;--with-emacs,,,https,https://ftp.gnu.org/gnu/gettext/gettext-1.0.tar.xz,,https://ftp.gnu.org/gnu/gettext/gettext-1.0.tar.xz.sig,,
+libidn2 (GNU),libidn2,configure,,,,https,https://ftp.gnu.org/gnu/libidn/libidn2-latest.tar.gz,,https://ftp.gnu.org/gnu/libidn/libidn2-latest.tar.gz.sig,,
+texinfo (GNU) (versioned),texinfo,configure,,,,https,https://ftp.gnu.org/gnu/texinfo/texinfo-7.3.tar.xz,,https://ftp.gnu.org/gnu/texinfo/texinfo-7.3.tar.xz.sig,,
+gdbm (GNU),gdbm,configure,--enable-libgdbm-compat;--without-readline,,,https,https://git.savannah.gnu.org/git/gdbm.git,master,,,
+cmake -- Requires bz2 (from macOS);zlib (from macOS);curl (from macOS);ncurses (from macOS);sphinx (defered),cmake,configure,--parallel=$CONCURRENT_JOBS;--system-zlib;--system-bzip2;--system-curl;-- -DCMake_BUILD_LTO=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -Wno-dev,,,git,https://gitlab.kitware.com/cmake/cmake.git,release,,,
+ninja -- Requires python3 (from macOS);cmake,ninja,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/ninja-build/ninja.git,release,,,
+openmp (versioned),openmp,prebuilt,,,local,https,https://mac.r-project.org/openmp/openmp-19.1.5-darwin20-Release.tar.gz,,,,
+
 # cpython,cpython,,,,,,,,,,/Library/Frameworks/Python.framework;/Applications/Python*
 

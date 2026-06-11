@@ -21,6 +21,7 @@ install_builtin_pkgconf() {
     pkgconf_ffi
     pkgconf_ncurses
     pkgconf_ncursesw
+    pkgconf_iconv
 }
 
 pkgconf_zlib() {
@@ -174,6 +175,55 @@ EOF
     fi
 }
 
+pkgconf_iconv() {
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/iconv.pc" && -f "$MACOS_SDK_PATH/usr/lib/libiconv.tbd" ]]; then  
+            local version=$(
+                awk -F': *' '
+                    $1 == "current-version" {
+                        gsub(/'\''|"/, "", $2)
+                        print $2
+                        exit
+                    }
+                ' "$MACOS_SDK_PATH/usr/lib/libiconv.tbd"
+            )
+
+            sudo tee "$INSTALL_PREFIX/lib/pkgconfig/iconv.pc" > /dev/null << EOF
+prefix=$MACOS_SDK_PATH/usr
+exec_prefix=$MACOS_SDK_PATH/usr
+bindir=$MACOS_SDK_PATH/usr/bin
+libdir=$MACOS_SDK_PATH/usr/lib
+includedir=$SDK_PATH/usr/include
+
+Name: iconv
+Description: Character set conversion library
+Version: $version
+Libs: -L\${libdir} -liconv
+Cflags: -I\${includedir}
+EOF
+        fi
+    fi
+}
+
+pkgconf_omp() {
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libomp.pc" ]]; then  
+            sudo tee "$INSTALL_PREFIX/lib/pkgconfig/libomp.pc" > /dev/null << EOF            
+prefix=$INSTALL_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: libomp
+Description: OpenMP Library for Apple Clang
+Version: 1.0
+Libs: -L\${libdir} -lomp
+Cflags: -I\${includedir} -Xpreprocessor -fopenmp
+EOF
+        fi
+    fi
+}
+
 # Patches applied after download, before build/install
 pre_patch() {
     name="${1}"
@@ -190,5 +240,7 @@ post_patch() {
             sudo ln -sf $INSTALL_PREFIX/bin/pkgconf $INSTALL_PREFIX/bin/pkg-config
             sudo ln -sf $INSTALL_PREFIX/share/man/man1/pkgconf $INSTALL_PREFIX/share/man/man1/pkg-config.1
             ;;
+        libomp)
+            pkgconf_omp ;;
     esac
 }
