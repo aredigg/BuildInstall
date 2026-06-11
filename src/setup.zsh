@@ -121,6 +121,13 @@ setup() {
         exit 2
     fi
 
+    # We need sudo access to install
+    sudo -K
+    sudo -vp "Please enter password to allow system install: "
+    # Keep sudo alive
+    { while kill -O "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
+    BI_SUDO_PID=$!
+
     # Custom settings for specific systems
     INSTALL_SYSTEM=$(uname)
     if [[ -f "$BI_DIRECTORY/src/$INSTALL_SYSTEM/patch.zsh" ]]; then
@@ -130,6 +137,7 @@ setup() {
         print -u 2 "ERROR: Not on a supported system"
         exit 2
     fi
+
     # Check that the csv file exists
     if [[ ! -n "$INSTALL_UTILITIES_FILE" ]]; then
         INSTALL_UTILITIES_FILE="$BI_DIRECTORY/src/$INSTALL_SYSTEM/$BI_SYSTEM_FILE"
@@ -152,19 +160,16 @@ setup() {
         "$INSTALL_MANIFESTS"
     BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/out.log"
     BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/err.log"
+
     # Check if we have gnumake
     BUILD_MAKE_TOOL="make"
     if command -v gnumake >/dev/null 2>&1; then
         BUILD_MAKE_TOOL="gnumake"
     fi
+
     # Redirect standard out and error
     exec >"$BUILD_LOG_OUT" 2>"$BUILD_LOG_ERR"
-    # We need sudo access to install
-    sudo -K
-    sudo -vp "Please enter password to allow system install: "
-    # Keep sudo alive
-    { while kill -O "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
-    BI_SUDO_PID=$!
+
     # Print script starttime into the logs
     TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
     print -ru1 $timefmt

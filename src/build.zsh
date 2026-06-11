@@ -11,6 +11,8 @@ build() {
     local src="$BUILD_SOURCES_DIRECTORY/${base}/${directory}"
     local bld="$BUILD_BUILDS_DIRECTORY/${name}"
 
+    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
         return
