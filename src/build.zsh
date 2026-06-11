@@ -259,22 +259,27 @@ no_build() {
     install_options+=( "${(@s:;:)4}" )
     # We use alt_options for a script to install if available, otherwise name of directory under install prefix
     local install_script="${5}"
+    # TODO maybe split this?
     local custom_directory="$install_script"
     uninstall_manifested "$name"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Installing"
-        if [[ -n "$install_script" ]]; then
+        if [[ -n "$install_script" || -n "$custom_directory" ]]; then
             if [[ -x "${source_directory}/${install_script}" ]]; then
+                # TODO some safety questions and checks
                 sudo "${source_directory}/${install_script}" "$install_options"
-            else
-                if [[ -d "${source_directory}/${custom_directory}" ]]; then
+            else    
+                if [[ ! -d "$INSTALL_PREFIX/${custom_directory}" ]]; then
                     mkdir -p "$INSTALL_PREFIX/${custom_directory}"
-                    sudo cp -rPf $source_directory/* "$INSTALL_PREFIX/${custom_directory}/"
                 fi
+                sudo cp -rPf $source_directory/* "$INSTALL_PREFIX/${custom_directory}/"
             fi
         else
             count_files=( "$source_directory"/*(.N) )
             if (( ${#count_files} == 1 )); then
+                if [[ ! -x "$count_files[1]" ]]; then
+                    chmod +x "$count_files[1]"
+                fi
                 sudo cp -Pf "$count_files[1]" "$INSTALL_PREFIX/bin/"
             else
                 local directories=(bin etc include lib libexec man sbin share)
