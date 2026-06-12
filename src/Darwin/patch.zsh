@@ -227,6 +227,15 @@ EOF
 # Patches applied after download, before build/install
 pre_patch() {
     name="${1}"
+    source_directory="${2}"
+    case "$name" in
+        openssl)
+            # There is also /System/Library/OpenSSL
+            /usr/bin/security export -k /System/Library/Keychains/SystemRootCertificates.keychain -t certs -p  > "$source_directory/keychain_root_certs.pem"
+            sudo mkdir -p "$INSTALL_PREFIX/ssl"
+            sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/cert.pem"
+            ;;
+   esac
 }
 
 # Patches applied after build/install

@@ -13,6 +13,24 @@ gdbm (GNU),gdbm,configure,--enable-libgdbm-compat;--without-readline,,,https,htt
 cmake -- Requires bz2 (from macOS);zlib (from macOS);curl (from macOS);ncurses (from macOS);sphinx (defered),cmake,configure,--parallel=$CONCURRENT_JOBS;--system-zlib;--system-bzip2;--system-curl;-- -DCMake_BUILD_LTO=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -Wno-dev,,,git,https://gitlab.kitware.com/cmake/cmake.git,release,,,
 ninja -- Requires python3 (from macOS);cmake,ninja,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/ninja-build/ninja.git,release,,,
 openmp (versioned),openmp,prebuilt,,,local,https,https://mac.r-project.org/openmp/openmp-19.1.5-darwin20-Release.tar.gz,,,,
+libtommath,libtommath,cmake,,,,git,https://github.com/libtom/libtommath.git,develop,,,
+pcre2 -- Requires python3 (from macOS);zlib (from macOS),pcre2,cmake,,,,git,https://github.com/PCRE2Project/pcre2.git,main,,,
+swig -- Requires python3 (from macOS);zlib (from macOS);pcre2;bison,swig,cmake,-DPCRE2_INCLUDE_DIRS=\"$INSTALL_PREFIX/include\,,,git,https://github.com/swig/swig.git,master,,,
+xz -- Requires gettext,xz,cmake,,,,git,https://github.com/tukaani-project/xz.git,master,,,
+z3 -- Requires python3 (from macOS);gmp (defered),z3,cmake,-DZ3_BUILD_PYTHON_BINDINGS=TRUE;-DZ3_INSTALL_PYTHON_BINDINGS=TRUE;-DZ3_BUILD_JAVA_BINDINGS=TRUE;-DZ3_INSTALL_JAVA_BINDINGS=TRUE,,,git,https://github.com/Z3Prover/z3.git,master,,,
+lz4,lz4,makeonly,,,,git,https://github.com/lz4/lz4.git,dev,,,
+zstd -- Requires lz4;xz;zlib (from macOS),zstd,makeonly,,,,git,https://github.com/facebook/zstd.git,dev,,,
+brotli,brotli,cmake,,,,git,https://github.com/google/brotli.git,master,,,
+multitail,multitail,cmake,,,,git,https://github.com/folkertvanheusden/multitail.git,master,,,
+openssl -- Requires brotli,openssl,configure,--openssldir=$INSTALL_PREFIX/ssl;darwin64-arm64-cc;enable-ec_nistp_64_gcc_128,,,git,https://github.com/openssl/openssl.git,master
+nghttp2,nghttp2,cmake,-DENABLE_EXAMPLES=OFF,,,git,https://github.com/nghttp2/nghttp2.git,master,,,
+nghttp3,nghttp3,cmake,,,,git,https://github.com/ngtcp2/nghttp3.git,main,,,
+libssh2 -- Requires openssl;zlib (from macOS),libssh2,cmake,,,,git,https://github.com/libssh2/libssh2.git,master,,,
+rtmpdump,rtmpdump,makeonly,SYS=darwin,,,git,https://git.ffmpeg.org/rtmpdump.git,master,,,
+curl -- Requires pkgconf;brotli;nghttp2;nghttp3;libssh2;openssl;rtmpdump;zstd;psl (defered);krb5 (from macOS);openldap (from macOS);zlib (from macOS),curl,cmake,-DCURL_USE_OPENSSL=ON;-DCURL_USE_LIBPSL=OFF;-DCURL_USE_GSSAPI=ON;-DCURL_LTO=ON;-DUSE_OPENSSL_QUIC=ON;-DUSE_APPLE_IDN=ON;-DCURL_CA_BUNDLE=$INSTALL_PREFIX/ssl/certs/cert.pem;-DCMAKE_OSX_SYSROOT=$MACOS_SDK_PATH,,,git,https://github.com/curl/curl.git,master,,,
+nano (GNU),nano,configure,--enable-color;-enable-extra;--enable-multibuffer;--enable-nanorc;--enable-utf8,,,git,git://git.savannah.gnu.org/nano.git,master
+
+
 
 # cpython,cpython,,,,,,,,,,/Library/Frameworks/Python.framework;/Applications/Python*
 

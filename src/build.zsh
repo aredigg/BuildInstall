@@ -46,6 +46,7 @@ build() {
     case "$kind" in
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
         cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
+        makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" ;;
         meson) build_meson "$name" "$src" "$bld" "$config" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
         custom) ;;
@@ -234,17 +235,41 @@ build_configure() {
     fi
 }
 
+build_makeonly() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local make_options
+    make_options+="--prefix=$INSTALL_PREFIX"
+    make_options+=( "${(@s:;:)4}" )
+    # We use alt_options for an optional prescript
+    local custom_maker="${5}"
+    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+    if [[ -n "$custom_maker" ]]; then
+        $custom_maker
+    fi
+    build_make "$name" "$make_options"
+}
+
 build_make() {
     local name="${1}"
+    local make_options="${2}"
     if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Patching"
+        if [[ -f "${source_directory}/makefile" ]]; then
+            mv "${source_directory}/makefile" "${source_directory}/Makefile"
+        fi
+        if [[ -f "${source_directory}/Makefile" ]]; then
+            sed -i '' "s|/usr/local|${INSTALL_PREFIX}${custom_prefix}|g" "$source_directory/Makefile"
+        fi
         status_print $name I "Making"
         # Now attempt to make, if it fails try not concurrent
-        $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS || $BUILD_MAKE_TOOL        
+        $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS $make_options || $BUILD_MAKE_TOOL        
         # Remove old install
         uninstall_manifested "$name"
         # Install the built utility
         status_print $name I "Installing"
-        sudo $BUILD_MAKE_TOOL install
+        sudo $BUILD_MAKE_TOOL install $make_options || sudo $BUILD_MAKE_TOOL install
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
