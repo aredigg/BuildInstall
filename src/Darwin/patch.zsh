@@ -235,6 +235,22 @@ pre_patch() {
             sudo mkdir -p "$INSTALL_PREFIX/ssl"
             sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/cert.pem"
             ;;
+        curl)
+            sed -i '' "s|\[unreleased\]|$(date '+%Y-%m-%d') \(Unsupported\)|g" "$source_directory/include/curl/curlver.h" ;;
+        helix)
+            export HELIX_DEFAULT_RUNTIME="$INSTALL_PREFIX/libexec/helix/runtime" ;;
+        fontconfig)
+            local ASSETS_V2_FONTS=(/System/Library/AssetsV2/com_apple_MobileAsset_Font*(N))
+            local ASSETS_FONTS=(/System/Library/Assets/com_apple_MobileAsset_Font*(N))
+            local FONTS=(
+                /System/Library/Fonts
+                /Library/Fonts
+                "$HOME/Library/Fonts"
+                ${ASSETS_V2_FONTS[@]}
+                ${ASSETS_FONTS[@]}
+            )
+            export FONTCONFIG_FONTS_DIRS="${(j:,:)FONTS}"
+            ;;
    esac
 }
 
@@ -251,5 +267,10 @@ post_patch() {
             ;;
         libomp)
             pkgconf_omp ;;
+        cpython)
+            export PATH="/Library/Frameworks/Python.framework/Versions/Current/bin:$PATH"
+            export SSL_CERT_DIR="$INSTALL_PREFIX/ssl"
+            export PKG_CONFIG_PATH="/Library/Frameworks/Python.framework/Versions/Current/lib/pkgconfig:$PKG_CONFIG_PATH"
+            ;;
     esac
 }
