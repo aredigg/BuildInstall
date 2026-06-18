@@ -26,7 +26,7 @@ install_builtin_pkgconf() {
 
 pkgconf_zlib() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/zlib.pc" && -f "$MACOS_SDK_PATH/usr/lib/libz.tbd" ]]; then  
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/zlib.pc" && -f "$MACOS_SDK_PATH/usr/lib/libz.tbd" ]]; then
             local version=$(
                 awk -F': *' '
                     $1 == "current-version" {
@@ -56,7 +56,7 @@ EOF
 
 pkgconf_xml2() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libxml-2.0.pc" && -f "$MACOS_SDK_PATH/usr/lib/libxml2.tbd" ]]; then  
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libxml-2.0.pc" && -f "$MACOS_SDK_PATH/usr/lib/libxml2.tbd" ]]; then
             local version=$(
                 awk -F': *' '
                     $1 == "current-version" {
@@ -87,7 +87,7 @@ EOF
 
 pkgconf_ffi() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libffi.pc" && -f "$MACOS_SDK_PATH/usr/lib/libffi.tbd" ]]; then  
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libffi.pc" && -f "$MACOS_SDK_PATH/usr/lib/libffi.tbd" ]]; then
             local version=$(
                 awk -F': *' '
                     $1 == "current-version" {
@@ -117,7 +117,7 @@ EOF
 
 pkgconf_ncurses() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/ncurses.pc" && -f "$MACOS_SDK_PATH/usr/lib/libncurses.tbd" ]]; then  
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/ncurses.pc" && -f "$MACOS_SDK_PATH/usr/lib/libncurses.tbd" ]]; then
             local version=$(
                 awk -F': *' '
                     $1 == "current-version" {
@@ -147,7 +147,7 @@ EOF
 
 pkgconf_ncursesw() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/ncursesw.pc" && -f "$MACOS_SDK_PATH/usr/lib/libncurses.tbd" ]]; then  
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/ncursesw.pc" && -f "$MACOS_SDK_PATH/usr/lib/libncurses.tbd" ]]; then
             local version=$(
                 awk -F': *' '
                     $1 == "current-version" {
@@ -177,7 +177,7 @@ EOF
 
 pkgconf_iconv() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/iconv.pc" && -f "$MACOS_SDK_PATH/usr/lib/libiconv.tbd" ]]; then  
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/iconv.pc" && -f "$MACOS_SDK_PATH/usr/lib/libiconv.tbd" ]]; then
             local version=$(
                 awk -F': *' '
                     $1 == "current-version" {
@@ -207,8 +207,8 @@ EOF
 
 pkgconf_omp() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libomp.pc" ]]; then  
-            sudo tee "$INSTALL_PREFIX/lib/pkgconfig/libomp.pc" > /dev/null << EOF            
+        if [[ ! -f "$INSTALL_PREFIX/lib/pkgconfig/libomp.pc" ]]; then
+            sudo tee "$INSTALL_PREFIX/lib/pkgconfig/libomp.pc" > /dev/null << EOF
 prefix=$INSTALL_PREFIX
 exec_prefix=\${prefix}
 libdir=\${exec_prefix}/lib

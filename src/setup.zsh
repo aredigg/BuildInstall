@@ -18,7 +18,7 @@ Options
     -t, --temp      Temporary directory for downloads and build artifacts (Default $BI_SYSTEM_TMP)
     -m, --manifest  Directory where manifest files are stored (Default $BI_SYSTEM_TMP/bi/manifests)
     -a, --archive   Create tar.xz archives of the built install
-    -f, --from      Alternative csv file containg list of utilities  
+    -f, --from      Alternative csv file containg list of utilities
     -n, --nocolor   Plain output
 $1"
     if [[ -n $1 ]]; then
@@ -175,4 +175,3 @@ setup() {
     print -ru1 $timefmt
     print -ru2 $timefmt
 }
-

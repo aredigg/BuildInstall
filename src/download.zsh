@@ -82,7 +82,7 @@ download_https() {
     sha512 -q "${BUILD_SOURCES_DIRECTORY}/${filename}" > "${INSTALL_MANIFESTS}/${name}.current"
 
     # TODO check signatures
-    
+
     status_print $name D "Download complete"
     extract "$name" "$filename" "$strip"
 }
@@ -121,4 +121,3 @@ extract() {
     fi
     status_print $name D "Extracting complete"
 }
-

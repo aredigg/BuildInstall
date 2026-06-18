@@ -114,13 +114,168 @@ lame (versioned),lame,configure,--disable-debug;--enable-nasm,,,https,https://so
 libsndfile,libsndfile,cmake,,,,git,https://github.com/libsndfile/libsndfile.git,master,,,
 libbs2b (versioned),libbs2b,configure,,,,https,https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz,,,,
 dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
-
+fdk-aac,fdk-aac,cmake,,,,git,https://github.com/mstorsjo/fdk-aac.git,master,,,
+flite,flite,configure,,,,git,https://github.com/festvox/flite.git,master,,,
+game-music-emu,game-music-emu,cmake,,,,git,https://github.com/libgme/game-music-emu.git,master,,,
+libmodplug (versioned),libmodplug,configure,,,,https,https://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.9.0/libmodplug-0.8.9.0.tar.gz,,,,
+cunit,cunit,cmake,,,,git,https://gitlab.com/cunity/cunit.git,master,,,
+libmysofa,libmysofa,cmake,,,,git,https://github.com/hoene/libmysofa.git,main,,,
+opencore-amr (versioned),opencore-amr,configure,,,,https,https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.6.tar.gz,,,,
+vo-amrwbenc (versioned),vo-amrwbenc,configure,,,,https,https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.3.tar.gz,,,,
+openh264,openh264,makeonly,,,,git,https://github.com/cisco/openh264.git,master,,,
+libogg,libogg,cmake,,,,git,https://gitlab.xiph.org/xiph/ogg.git,master,,,
+libvorbis,libvorbis,cmake,,,,git,https://gitlab.xiph.org/xiph/vorbis.git,master,,,
+libflac,libflac,cmake,-DINSTALL_MANPAGES=OFF,,,git,https://github.com/xiph/flac.git,master,,,
+libopus,libopus,cmake,,,,git,https://github.com/xiph/opus.git,main,,,
+libtheora,libtheora,configure,--disable-oggtest;--disable-vorbistest;--disable-examples,,,git,https://github.com/xiph/theora.git,master,,,
+portaudio,portaudio,cmake,,,,git,https://github.com/PortAudio/portaudio.git,master,,,
+openmpt,openmpt,makeonly,,,,git,https://github.com/OpenMPT/openmpt.git,master,,,
+libqrencode,libqrencode,cmake,,,,git,https://github.com/fukuchi/libqrencode.git,master,,,
+rubberband,rubberband,meson,,,,git,https://github.com/breakfastquay/rubberband.git,default,,,
+shine,shine,configure,,,,git,https://github.com/toots/shine.git,main,,,
+soxr -- Requires openmp,soxr,cmake,,,,git,https://github.com/chirlu/soxr.git,master,,,
+snappy,snappy,cmake,-DSNAPPY_BUILD_TESTS=OFF;-DSNAPPY_BUILD_BENCHMARKS=OFF,,,git,https://github.com/google/snappy.git,main,,,
+speex,speex,meson,,,,git,https://gitlab.xiph.org/xiph/speex.git,master,,,
+svt-av1 (versioned),svt-av1,cmake,,,,git,https://gitlab.com/AOMediaCodec/SVT-AV1.git,master,v4.1.0,,
+twolame (versioned),twolame,configure,,,,https,https://downloads.sourceforge.net/twolame/twolame-0.4.0.tar.gz,,,,
+vmaf,vmaf,meson,,,/libvmaf,git,https://github.com/Netflix/vmaf.git,master,,,
+libvpx,libvpx,configure,,,,git,https://chromium.googlesource.com/webm/libvpx.git,main,,,
+tomli,tomli,pip,,,,,,,,,
+mako,mako,pip,,,,,,,,,
+pyyaml,pyyaml,pip,,,,,,,,,
+mesa,mesa,meson,-Dllvm=disabled;-Dshared-llvm=disabled;-Dcpp_rtti=false;-Dplatforms=macos;-Dgallium-drivers=softpipe;-Dglx=disabled,,,git,https://gitlab.freedesktop.org/mesa/mesa.git,main,,,
+depot_tools,depot_tools,custom,,,,git,https://chromium.googlesource.com/chromium/tools/depot_tools.git,main,,,
+angle,angle,custom,,,,none,,,,,
+libepoxy,libepoxy,meson,-Degl=yes;-Dx11=false,,,git,https://github.com/akihikodaki/libepoxy.git,macos,,,
+virglrenderer,virglrenderer,meson,,,,git,https://github.com/akihikodaki/virglrenderer.git,macos,,,
+vde2,vde2,cmake,,,,git,https://github.com/virtualsquare/vde-2.git,master,,,
+libssh,libssh,cmake,-DBUILD_STATIC_LIB=ON;-DWITH_SYMBOL_VERSIONING=OFF,,,git,https://github.com/timway/libssh-mirror.git,master,,,
+capstone,capstone,cmake,,,,git,https://github.com/capstone-engine/capstone.git,next,,,
+distlib,distlib,pip,,,,,,,,,
+gtk,gtk,meson,-Dx11-backend=false;-Dmacos-backend=true;-Dvulkan=disabled;-Dmedia-gstreamer=disabled;-Dbuild-examples=false;-Dbuild-tests=false;-Dintrospection=enabled,,,git,https://gitlab.gnome.org/GNOME/gtk.git,main,,,
+gtk3,gtk3,meson,-Dx11_backend=false;-Dquartz_backend=true;-Dintrospection=true,,,https,https://download.gnome.org/sources/gtk+/3.24/gtk+-3.24.43.tar.xz,,,,
+gtk-mac-integration,gtk-mac-integration,configure,--without-gtk2;--with-gtk3;--enable-introspection=yes,,,git,https://gitlab.gnome.org/GNOME/gtk-mac-integration.git,master,,,
+desktop-file-utils,desktop-file-utils,meson,,,,git,https://gitlab.freedesktop.org/xdg/desktop-file-utils.git,master,,,
+hicolor-icon-theme (versioned),hicolor-icon-theme,meson,,,,https,https://ftp2.osuosl.org/pub/blfs/conglomeration/hicolor-icon-theme/hicolor-icon-theme-0.18.tar.xz,,,,
+shared-mime-info (versioned),shared-mime-info,meson,,,,https,https://gitlab.freedesktop.org/xdg/shared-mime-info/-/archive/2.4/shared-mime-info-2.4.tar.bz2,,,,
+json-glib,json-glib,meson,,,,git,https://gitlab.gnome.org/GNOME/json-glib.git,main,,,
+gtkwave,gtkwave,meson,,,,git,https://github.com/gtkwave/gtkwave.git,master,,,
+molten-vk,molten-vk,makeonly,macos,,,git,https://github.com/KhronosGroup/MoltenVK.git,main,,,
+fastfetch,fastfetch,cmake,,,,git,https://github.com/fastfetch-cli/fastfetch.git,dev,,,
+xavs2,xavs2,configure,--host=aarch64-apple-darwin24,,/build/linux,git,https://github.com/pkuvcl/xavs2.git,master,,,
+xvidcore (versioned),xvidcore,configure,,,/build/generic,https,https://downloads.xvid.com/downloads/xvidcore-1.3.7.tar.bz2,,,,
+zimg,zimg,configure,,,,git,https://github.com/sekrit-twc/zimg.git,master,,,
+zvbi,zvbi,configure,,,,git,https://github.com/zapping-vbi/zvbi.git,main,,,
+openal,openal,cmake,-Wno-error=function-effects;-DALSOFT_UTILS=OFF;-DALSOFT_EXAMPLES=OFF;-DALSOFT_TESTS=OFF;-DHAVE_GCC_PROTECTED_VISIBILITY=OFF,,,git,https://github.com/kcat/openal-soft.git,master,1.24.0,,
+pocketsphinx,pocketsphinx,cmake,-DBUILD_SHARED_LIBS=ON,,,git,https://github.com/cmusphinx/pocketsphinx.git,main,,,
+libgpg-error (versioned),libgpg-error,configure,,,,https,https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.59.tar.bz2,,,,
+libgcrypt (versioned),libgcrypt,configure,,,,https,https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.12.1.tar.bz2,,,,
+libcdio (versioned),libcdio,configure,,,,https,https://ftp.gnu.org/gnu/libcdio/libcdio-2.1.0.tar.bz2,,,,
+libcdio-paranoia,libcdio-paranoia,configure,,,,git,https://github.com/libcdio/libcdio-paranoia.git,master,,,
+chromaprint,chromaprint,cmake,-DBUILD_TESTS=OFF,,,git,https://github.com/acoustid/chromaprint.git,master,,,
+vid.stab,vid.stab,cmake,,,,git,https://github.com/georgmartius/vid.stab.git,master,,,
+x264,x264,configure,--enable-shared;--enable-static;--enable-strip,,,git,https://code.videolan.org/videolan/x264.git,master,,,
+libzmq,libzmq,cmake,-DBUILD_SHARED_LIBS=ON,,,git,https://github.com/zeromq/libzmq.git,master,,,
+ffmpeg,ffmpeg,configure,--enable-gpl;--enable-version3;--enable-nonfree;--enable-libaom;--enable-libass;--enable-libbluray;--enable-libbs2b;--enable-libcdio;--enable-libdav1d;--enable-libfdk-aac;--enable-libflite;--enable-libfontconfig;--enable-libfreetype;--enable-libfribidi;--enable-libgme;--enable-libharfbuzz;--enable-libjxl;--enable-libmp3lame;--enable-libopencore-amrwb;--enable-opengl;--enable-libopus;--enable-libopenjpeg;--enable-libopenmpt;--enable-libsvtav1;--enable-libtheora;--enable-libxvid;--enable-libsnappy;--enable-libmysofa;--enable-libopencore-amrnb;--enable-libmodplug;--enable-libqrencode;--enable-libshine;--enable-librubberband;--enable-libsoxr;--enable-libspeex;--enable-libtwolame;--enable-libvidstab;--enable-libvorbis;--enable-libvo-amrwbenc;--enable-libvpx;--enable-libwebp;--enable-libx264;--enable-libxml2;--enable-libzimg;--enable-libzvbi;--enable-gcrypt;--enable-gmp;--enable-gnutls;--enable-openal;--enable-opencl;--enable-pocketsphinx;--enable-libopenh264;--enable-libvmaf;--enable-libxavs2;--enable-libzmq,,,git,https://git.ffmpeg.org/ffmpeg.git,master,,,
+qemu,qemu,configure,--qemu-ga-distro=macOS;--enable-opengl;--enable-virglrenderer;--enable-slirp;--enable-capstone;--enable-curses;--enable-libssh;--enable-vde;--enable-virtfs;--enable-zstd;--extra-cflags=-DNCURSES_WIDECHAR=1;--enable-cocoa;--disable-sdl,,,git,https://github.com/akihikodaki/qemu.git,macos,,,
+sdl2,sdl2,cmake,,,,git,https://github.com/libsdl-org/SDL.git,SDL2,,,
+bochs,bochs,configure,--enable-a20-pin;--enable-gdb-stub;--enable-pci;--enable-usb;--enable-usb-ohci;--with-sdl2,,/bochs,git,https://github.com/bochs-emu/Bochs.git,master,,,
+mdcat,mdcat,cargo,,,,git,https://github.com/swsnr/mdcat.git,main,,,
+eza,eza,cargo,,,,git,https://github.com/eza-community/eza.git,main,,,
+jupyterlab,jupyterlab,pip,binary,,,,,,,,,
+voila,voila,pip,binary,,,,,,,,,
+matplotlib,matplotlib,pip,,,,,,,,,
+pandas,pandas,pip,,,,,,,,,
+pillow,pillow,pip,,,,,,,,,
+seaborn,seaborn,pip,,,,,,,,,
+scikit-learn,scikit-learn,pip,binary,,,,,,,,,
+torch,torch,pip,version=2.11.0,https://download.pytorch.org/whl/test/,,,,,,,
+torchvision,torchvision,pip,version=0.26.0,https://download.pytorch.org/whl/test/,,,,,,,
+torchaudio,torchaudio,pip,version=2.11.0,https://download.pytorch.org/whl/test/,,,,,,,
+libdaq,libdaq,configure,,,,git,https://github.com/snort3/libdaq.git,master,,,
+hwloc,hwloc,configure,,,,git,https://github.com/open-mpi/hwloc.git,master,,,
+jemalloc,jemalloc,configure,,,,git,https://github.com/jemalloc/jemalloc.git,dev,,,
+libpcap,libpcap,cmake,,,,git,https://github.com/the-tcpdump-group/libpcap.git,master,,,
+boost,boost,cmake,,,,git,https://github.com/boostorg/boost.git,master,,,
+ragel (versioned),ragel,configure,,,,https,https://www.colm.net/files/ragel/ragel-6.10.tar.gz,,,,
+libdnet,libdnet,cmake,,,,git,https://github.com/ofalk/libdnet.git,master,,,
+flex (versioned),flex,configure,,,,https,https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz,,,,
+luajit,luajit,makeonly,,,,git,https://luajit.org/git/luajit.git,v2.1,,,
+snort,snort,cmake,-DDNET_INCLUDE_DIR=$INSTALL_PREFIX/include/dnet,,,git,https://github.com/snort3/snort3.git,master,,,
+snort_extra,snort_extra,cmake,,,,git,https://github.com/snort3/snort3_extra.git,master,,,
+zig (versioned),zig,prebuilt,,,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.131+73c51c142.tar.xz,,,,
+zls,zls,zig,,,,git,https://github.com/zigtools/zls.git,master,,,
+deno (versioned),deno,prebuilt,,,,https,https://github.com/denoland/deno/releases/download/v2.7.9/deno-aarch64-apple-darwin.zip,,,NO,
+ruff,ruff,pip,,,,,,,,,
+pyright,pyright,pip,,,,,,,,,
+brotli,brotli,pip,,,,,,,,,
+charset-normalizer,charset-normalizer,pip,,,,,,,,,
+idna,idna,pip,,,,,,,,,
+mutagen,mutagen,pip,,,,,,,,,
+pycryptodomex,pycryptodomex,pip,,,,,,,,,
+requests,requests,pip,,,,,,,,,
+urllib3,urllib3,pip,,,,,,,,,
+websockets,websockets,pip,,,,,,,,,
+curl_cffi,curl_cffi,pip,,,,,,,,,
+yt-dlp,yt-dlp,pip,,,,,,,,,
+bgutil-pot,bgutil-pot,cargo,,,,git,https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs.git,master,,,
+opencv-python,opencv-python,pip,binary,,,,,,,,,
+openai-whisper,openai-whisper,pip,binary,,,,,,,,,
+postgresql (versioned),postgresql,meson,,,,git,https://github.com/postgres/postgres.git,REL_18_STABLE,,,
+geos,geos,cmake,,,,git,https://github.com/libgeos/geos.git,main,,,
+proj,proj,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/OSGeo/PROJ.git,master,,,
+abseil,abseil,cmake,-DBUILD_TESTING=OFF;-DCMAKE_CXX_STANDARD=17;-DABSL_ENABLE_INSTALL=ON;-DABSL_PROPAGATE_CXX_STD=ON,,,git,https://github.com/abseil/abseil-cpp.git,master,,,
+protobuf,protobuf,cmake,-Dprotobuf_BUILD_TESTS=OFF;-Dprotobuf_BUILD_LIBPROTOC=ON;-Dprotobuf_INSTALL_EXAMPLES=OFF,,,git,https://github.com/protocolbuffers/protobuf.git,main,,,
+protobuf-c,protobuf-c,cmake,,,/build-cmake,git,https://github.com/strophy/protobuf-c.git,fix-protobuf-34-compile,,,
+json-c,json-c,cmake,-DBUILD_APPS=OFF,,,git,https://github.com/json-c/json-c.git,master,,,
+gdal,gdal,cmake,-DCMAKE_CXX_STANDARD=17;-DGDAL_USE_TIFF_INTERNAL=ON;-DGDAL_USE_OPENMP=OFF;-DBUILD_TESTING=OFF,,,git,https://github.com/OSGeo/gdal.git,master,,,
+postgis (versioned),postgis,configure,,,,git,https://github.com/postgis/postgis.git,stable-3.6,,,
+postgres-language-server,postgres-language-server,prebuilt,,,,https,https://github.com/supabase-community/postgres-language-server/releases/download/0.24.0/postgres-language-server_aarch64-apple-darwin,,,,
+pgvector,pgvector,makeonly,,,,git,https://github.com/pgvector/pgvector.git,master,,,
+qt5 (versioned),qt5,cmake,,,,git,git://code.qt.io/qt/qt5.git,dev,,,
+exiftool (versioned),exiftool,prebuilt,,,,https,https://downloads.sourceforge.net/exiftool/Image-ExifTool-13.57.tar.gz,,,,
+dovi_tool,dovi_tool,cargo,,,,git,https://github.com/quietvoid/dovi_tool.git,main,,,
+mcp,mcp,pip,,,,,,,,,
+fastmcp,fastmcp,pip,,,,,,,,,
+ripgrep,ripgrep,cargo,,,,git,https://github.com/BurntSushi/ripgrep.git,master,,,
+bat,bat,cargo,,,,git,https://github.com/sharkdp/bat.git,master,,,
+atac,atac,cargo,,,,git,https://github.com/Julien-cpsn/ATAC.git,main,,,
+skim,skim,cargo,,,,git,https://github.com/skim-rs/skim.git,master,,,
+pygame,pygame,pip,,,,,,,,,
+pyarrow,pyarrow,pip,binary,,,,,,,,,
+mlx,mlx,pip,binary,,,,,,,,,
+mlx-lm,mlx-lm,pip,,,,,,,,,
+mlx-vlm,mlx-vlm,pip,,,,,,,,,
+outlines,outlines,pip,,,,,,,,,
+claude-code (versioned),claude-code,prebuilt,,,,https,https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.1.81/darwin-arm64/claude,,,NO,
+gemini,gemini,npm,@google/gemini-cli,,,,,,,,,
+lmstudio-js,lmstudio-js,npm,@lmstudio/sdk,,,,,,,,,
+lmstudio,lmstudio,pip,,,,,,,,,
+wxwidgets,wxwidgets,configure,--enable-compat30;--with-opengl;--enable-shared,,,git,https://github.com/wxWidgets/wxWidgets.git,3.2,,,
+erlang,erlang,configure,,,,git,https://github.com/erlang/otp.git,master,,,
+golang (versioned),golang,prebuilt,,,,https,https://go.dev/dl/go1.26.1.darwin-arm64.tar.gz,,,NO,
+ohmyposh,ohmyposh,prebuilt,,,,https,https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v29.10.0/posh-darwin-arm64,,,,
+d2 (versioned),d2,prebuilt,,,,https,https://github.com/terrastruct/d2/releases/download/v0.7.1/d2-v0.7.1-macos-arm64.tar.gz,,,NO,
+libfyaml,libfyaml,cmake,,,,git,https://github.com/pantoniou/libfyaml.git,master,,,
+lxml,lxml,pip,,,,,,,,,
+itstool,itstool,configure,,,,git,https://github.com/nwellnhof/itstool.git,lxml-migration,,,
+libxmlb,libxmlb,meson,-Dgtkdoc=false,,,git,https://github.com/hughsie/libxmlb.git,main,,,
+appstream,appstream,meson,-Dsystemd=false;-Dstemming=false;-Dbash-completion=false;-Ddocs=false;-Dapidocs=false;-Dinstall-docs=false;-Dman=false,,,git,https://github.com/ximion/appstream.git,main,,,
+dia,dia,meson,,,,git,https://gitlab.gnome.org/GNOME/dia.git,master,,,
+john,john,configure,--enable-openmp,,/src,git,https://github.com/openwall/john.git,bleeding-jumbo,,,
+nmap,nmap,configure,,,,git,https://github.com/nmap/nmap.git,master,,,
+minizip,minizip,cmake,,,,git,https://github.com/zlib-ng/minizip-ng.git,master,,,
+xxhash,xxhash,cmake,,,/cmake_unofficial,git,https://github.com/Cyan4973/xxHash.git,release,,,
+hashcat,hashcat,makeonly,USE_SYSTEM_XXHASH=1;USE_SYSTEM_OPENCL=1;USE_SYSTEM_ZLIB=1;ENABLE_UNRAR=0,,,git,https://github.com/hashcat/hashcat.git,master,,,
+thc-hydra,thc-hydra,configure,,,,git,https://github.com/vanhauser-thc/thc-hydra.git,master,,,
+sqlmap,sqlmap,pip,,,,,,,,,
+odinlang,odinlang,prebuilt,,,,https,https://github.com/odin-lang/Odin/releases/download/dev-2026-03/odin-macos-arm64-dev-2026-03.tar.gz,,,,
 
         # fdk-aac
         install_package "fdk-aac" "cmake" "" "" "" "git" "https://github.com/mstorsjo/fdk-aac.git" "master" "YES" "YES"
 
         # flite
-        install_package "flite" "configure_in_source" "" "" "" "git" "https://github.com/festvox/flite.git" "master" "YES" "YES"
+        install_package "flite" "configure" "" "" "" "git" "https://github.com/festvox/flite.git" "master" "YES" "YES"
 
         # game-music-emu
         install_package "game-music-emu" "cmake" "" "" "" "git" "https://github.com/libgme/game-music-emu.git" "master" "YES" "YES"
@@ -156,7 +311,7 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         install_package "libopus" "cmake" "" "" "" "git" "https://github.com/xiph/opus.git" "main" "YES" "YES"
 
         # libtheora
-        install_package "libtheora" "configure_in_source" "./autogen.sh" "--disable-oggtest --disable-vorbistest --disable-examples" "" "git" "https://github.com/xiph/theora.git" "master" "YES" "YES"
+        install_package "libtheora" "configure" "" "--disable-oggtest --disable-vorbistest --disable-examples" "" "git" "https://github.com/xiph/theora.git" "master" "YES" "YES"
 
         # portaudio
         install_package "portaudio" "cmake" "" "" "" "git" "https://github.com/PortAudio/portaudio.git" "master" "YES" "YES"
@@ -175,7 +330,7 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
 #        export LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
         # shine
-        install_package "shine" "configure_in_source" "" "" "" "git" "https://github.com/toots/shine.git" "main" "YES" "YES"
+        install_package "shine" "configure" "" "" "" "git" "https://github.com/toots/shine.git" "main" "YES" "YES"
 
         # soxr
         export LDFLAGS="-lomp"
@@ -284,7 +439,7 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         install_package "gtk3" "meson" "" "" "" "https" "https://download.gnome.org/sources/gtk+/3.24/" "gtk+-3.24.43.tar.xz" "YES" "YES"
 
         # gtk-mac-integration
-        install_package "gtk-mac-integration" "configure_in_source" "./autogen.sh" "--without-gtk2 --with-gtk3 --enable-introspection=yes" "" "git" "https://gitlab.gnome.org/GNOME/gtk-mac-integration.git" "master" "YES" "YES"
+        install_package "gtk-mac-integration" "configure" "" "--without-gtk2 --with-gtk3 --enable-introspection=yes" "" "git" "https://gitlab.gnome.org/GNOME/gtk-mac-integration.git" "master" "YES" "YES"
 
         # desktop-file-utils
         install_package "desktop-file-utils" "meson" "" "" "" "git" "https://gitlab.freedesktop.org/xdg/desktop-file-utils.git" "master" "YES" "YES"
@@ -312,17 +467,17 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
 
         # xavs2
         CFLAGS="-Wno-incompatible-pointer-types"
-        install_package "xavs2" "configure_in_source" "" "--host=aarch64-apple-darwin24" "/build/linux" "git" "https://github.com/pkuvcl/xavs2.git" "master" "YES" "YES"
+        install_package "xavs2" "configure" "" "--host=aarch64-apple-darwin24" "/build/linux" "git" "https://github.com/pkuvcl/xavs2.git" "master" "YES" "YES"
         CFLAGS=""
 
         # xvidcore (versioned)
-        install_package "xvidcore" "configure_in_source" "" "" "/build/generic" "https" "https://downloads.xvid.com/downloads/" "xvidcore-1.3.7.tar.bz2" "YES" "YES"
+        install_package "xvidcore" "configure" "" "" "/build/generic" "https" "https://downloads.xvid.com/downloads/" "xvidcore-1.3.7.tar.bz2" "YES" "YES"
 
         # zimg
-        install_package "zimg" "configure" "./autogen.sh" "" "" "git" "https://github.com/sekrit-twc/zimg.git" "master" "YES" "YES"
+        install_package "zimg" "configure" "" "" "" "git" "https://github.com/sekrit-twc/zimg.git" "master" "YES" "YES"
 
         # zvbi
-        install_package "zvbi" "configure" "./autogen.sh" "" "" "git" "https://github.com/zapping-vbi/zvbi.git" "main" "YES" "YES"
+        install_package "zvbi" "configure" "" "" "" "git" "https://github.com/zapping-vbi/zvbi.git" "main" "YES" "YES"
 
         # openal
 #        export LDFLAGS="-lmpg123 -lmp3lame"
@@ -351,7 +506,7 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         install_package "libcdio" "configure" "" "" "" "https" "https://ftp.gnu.org/gnu/libcdio/" "libcdio-2.1.0.tar.bz2" "YES" "YES"
 
         # libcdio-paranoia
-        install_package "libcdio-paranoia" "configure_in_source" "./autogen.sh" "" "" "git" "https://github.com/libcdio/libcdio-paranoia.git" "master" "YES" "YES"
+        install_package "libcdio-paranoia" "configure" "" "" "" "git" "https://github.com/libcdio/libcdio-paranoia.git" "master" "YES" "YES"
 
         # chromaprint
         install_package "chromaprint" "cmake" "" "-DBUILD_TESTS=OFF" "" "git" "https://github.com/acoustid/chromaprint.git" "master" "YES" "YES"
@@ -443,13 +598,13 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         install_package "torchaudio" "pip" "version" "2.11.0" "https://download.pytorch.org/whl/test/"
 
         # libdaq
-        install_package "libdaq" "configure_in_source" "" "" "" "git" "https://github.com/snort3/libdaq.git" "master" "YES" "YES"
+        install_package "libdaq" "configure" "" "" "" "git" "https://github.com/snort3/libdaq.git" "master" "YES" "YES"
 
         # hwloc
-        install_package "hwloc" "configure" "./autogen.sh" "" "" "git" "https://github.com/open-mpi/hwloc.git" "master" "YES" "YES"
+        install_package "hwloc" "configure" "" "" "" "git" "https://github.com/open-mpi/hwloc.git" "master" "YES" "YES"
 
         # jemalloc
-        install_package "jemalloc" "configure" "./autogen.sh" "" "" "git" "https://github.com/jemalloc/jemalloc.git" "dev" "YES" "YES"
+        install_package "jemalloc" "configure" "" "" "" "git" "https://github.com/jemalloc/jemalloc.git" "dev" "YES" "YES"
 
         # libpcap - cmake
         install_package "libpcap" "cmake" "" "" "" "git" "https://github.com/the-tcpdump-group/libpcap.git" "master" "YES" "YES"
@@ -663,7 +818,7 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         # erlang
         export CFLAGS="-O2 -DHAVE_OPENGL_GL_H -DHAVE_OPENGL_GLU_H $CFLAGS"
         export CXXFLAGS="$CFLAGS"
-        install_package "erlang" "configure_in_source" "" "" "" "git" "https://github.com/erlang/otp.git" "master" "YES" "YES"
+        install_package "erlang" "configure" "" "" "" "git" "https://github.com/erlang/otp.git" "master" "YES" "YES"
         export CFLAGS=""
         export CXXFLAGS=""
 
@@ -709,13 +864,13 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         export CFLAGS="-g -O2 -Xpreprocessor -fopenmp -I$INSTALL_PREFIX/include $CFLAGS"
         export LDFLAGS="-lomp -L$INSTALL_PREFIX/lib $LDFLAGS"
         export CPPFLAGS="-I$INSTALL_PREFIX/include $CPPFLAGS"
-        install_package "john" "configure_in_source" "" "--enable-openmp" "/src" "git" "https://github.com/openwall/john.git" "bleeding-jumbo" "YES" "YES"
+        install_package "john" "configure" "" "--enable-openmp" "/src" "git" "https://github.com/openwall/john.git" "bleeding-jumbo" "YES" "YES"
         export CFLAGS="-g -O2"
         export LDFLAGS="-Wl,-rpath,@loader_path/../lib"
         export CPPFLAGS=""
 
         # nmap
-        install_package "nmap" "configure_in_source" "" "" "" "git" "https://github.com/nmap/nmap.git" "master" "YES" "YES"
+        install_package "nmap" "configure" "" "" "" "git" "https://github.com/nmap/nmap.git" "master" "YES" "YES"
 
         # minizip
         install_package "minizip" "cmake" "" "" "" "git" "https://github.com/zlib-ng/minizip-ng.git" "master" "YES" "YES"
@@ -729,7 +884,7 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         export LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
         # thc-hydra todo: add more dependencies
-        install_package "thc-hydra" "configure_in_source" "" "" "" "git" "https://github.com/vanhauser-thc/thc-hydra.git" "master" "YES" "YES"
+        install_package "thc-hydra" "configure" "" "" "" "git" "https://github.com/vanhauser-thc/thc-hydra.git" "master" "YES" "YES"
 
         # sqlmap
         install_package "sqlmap" "pip"
@@ -737,4 +892,3 @@ dav1d,dav1d,meson,,,,git,https://github.com/videolan/dav1d.git,master,,,
         # odinlang
         #install_package "odinlang" "make_only" "" "release-native" "" "git" "https://github.com/odin-lang/Odin.git" "master" "YES" "YES"
         install_package "odinlang" "prebuilt" "" "" "" "https" "https://github.com/odin-lang/Odin/releases/download/dev-2026-03/" "odin-macos-arm64-dev-2026-03.tar.gz" "YES" "YES"
-

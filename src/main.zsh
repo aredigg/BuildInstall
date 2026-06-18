@@ -27,4 +27,3 @@ main() {
         build "$name" "$kind" "$config_options" "$alt_options" "$directory" "$manifesting"
     done < "$INSTALL_UTILITIES_FILE"
 }
-

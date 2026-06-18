@@ -54,7 +54,7 @@ build() {
 
     # Checking for patches
     post_patch "$name"
-    
+
     # Post manifest and complete manifest
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Manifesting"
@@ -114,15 +114,15 @@ build_cmake() {
     local source_directory="${2}"
     local build_directory="${3}"
     local cmake_options=(
-        "-Wno-dev"    
-        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"    
-        '-DCMAKE_INSTALL_RPATH=@loader_path/../lib'    
-        "-DCMAKE_BUILD_TYPE=Release"    
-        "-DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX"    
-        "-DBUILD_SHARED_LIBS=TRUE"    
+        "-Wno-dev"
+        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+        '-DCMAKE_INSTALL_RPATH=@loader_path/../lib'
+        "-DCMAKE_BUILD_TYPE=Release"
+        "-DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX"
+        "-DBUILD_SHARED_LIBS=TRUE"
     )
-    if [[ $name != "ninja" ]]; then    
-        cmake_options+=("-GNinja")    
+    if [[ $name != "ninja" ]]; then
+        cmake_options+=("-GNinja")
     fi
     cmake_options+=( "${(@s:;:)4}" )
 
@@ -152,7 +152,7 @@ build_meson() {
         "setup"
         "--buildtype" "release"
         "-Ddefault_library=shared"
-        "--prefix=$INSTALL_PREFIX"    
+        "--prefix=$INSTALL_PREFIX"
     )
     meson_options+=( "${(@s:;:)4}" )
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
@@ -206,7 +206,7 @@ build_configure() {
         if [[ -f "${source_directory}/configure" ]]; then
             "${source_directory}/configure" $configure_options
         elif [[ -f "${source_directory}/Configure" ]]; then
-            "${source_directory}/Configure" $configure_options    
+            "${source_directory}/Configure" $configure_options
         elif [[ -f "${source_directory}/bootstrap" ]]; then
             if ! "${source_directory}/bootstrap" $configure_options; then
                  "${source_directory}/bootstrap" --force
@@ -223,7 +223,7 @@ build_configure() {
                 print "Missing configurer, $PWD"
             fi
             popd > /dev/null
-            if [[ -f "${source_directory}/configure" ]]; then       
+            if [[ -f "${source_directory}/configure" ]]; then
                 status_print $name I "Configuring"
                 "${source_directory}/configure" $configure_options
             fi
@@ -264,7 +264,7 @@ build_make() {
         fi
         status_print $name I "Making"
         # Now attempt to make, if it fails try not concurrent
-        $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS $make_options || $BUILD_MAKE_TOOL        
+        $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS $make_options || $BUILD_MAKE_TOOL
         # Remove old install
         uninstall_manifested "$name"
         # Install the built utility
@@ -293,7 +293,7 @@ no_build() {
             if [[ -x "${source_directory}/${install_script}" ]]; then
                 # TODO some safety questions and checks
                 sudo "${source_directory}/${install_script}" "$install_options"
-            else    
+            else
                 if [[ ! -d "$INSTALL_PREFIX/${custom_directory}" ]]; then
                     mkdir -p "$INSTALL_PREFIX/${custom_directory}"
                 fi
@@ -311,7 +311,7 @@ no_build() {
                 local directory
                 for directory in "${directories[@]}"; do
                     if [[ ! -d "$source_directory/$directory" ]]; then
-                        # TODO 
+                        # TODO
                         status_print $name W "Unsupported"
                         return
                     fi
