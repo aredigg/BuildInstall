@@ -12,7 +12,8 @@ download() {
     status_print $name I "Download"
     case "$cmd" in
         https) download_https "$name" "$url" "$sig" "$strip" ;;
-        git) download_git "$name" "$url" "$dbr" "$sig"
+        git) download_git "$name" "$url" "$dbr" "$sig" ;;
+        pip) download_pip "$name" "$url" ;;
     esac
 }
 
@@ -85,6 +86,15 @@ download_https() {
 
     status_print $name D "Download complete"
     extract "$name" "$filename" "$strip"
+}
+
+download_pip() {
+    local name="${1}"
+    local url="${2}"
+    local filename=($name-*.*(om[1]))
+    pip3 download --no-input --no-cache-dir --disable-pip-version-check --no-build-isolation --no-deps --no-binary :all: --dest "${BUILD_SOURCES_DIRECTORY}" $name
+    cd "${BUILD_SOURCES_DIRECTORY}"
+    extract $name $filename "YES"
 }
 
 # Extract routines

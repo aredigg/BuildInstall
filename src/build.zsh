@@ -48,6 +48,7 @@ build() {
         cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
         makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" ;;
         meson) build_meson "$name" "$src" "$bld" "$config" ;;
+        pip) build_pip "$name" "$src" "$config" "$alt_options" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
         custom) ;;
     esac
@@ -171,6 +172,33 @@ build_meson() {
         sudo meson install -C "$build_directory"
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
+}
+
+build_pip() {
+    local name="${1}"
+    local source_directory="${2}"
+    local config_settings
+    config_settings+=( "${(@s:;:)3}" )
+    config_settings="--config-settings=\"$config_settings\""
+    local build_option="${4}"
+    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        if [[ $name == "pip" ]]; then
+            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            sudo python3 get-pip.py --force-reinstall
+            rm get-pip.py
+        fi
+        if [[ -d "$source_directory" ]]; then
+            sudo -H pip3 install --root-user-action ignore $config_settings --no-deps --no-build-isolation "$source_directory"
+        elif [[ $build_option == "binary" ]]; then
+            sudo -H pip3 install --root-user-action ignore --no-deps --only-binary :all: --upgrade "$name"
+        else
+            sudo -H pip3 install --root-user-action ignore $config_settings --no-deps --no-build-isolation --no-binary :all: --upgrade "$name"
+        fi
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        sudo -H pip3 uninstall -y "$name"
         uninstall_manifested "$name"
     fi
 }
