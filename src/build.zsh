@@ -33,30 +33,29 @@ build() {
         rm "$INSTALL_MANIFESTS/${name}.pre-manifest"
     elif [[ -f "$INSTALL_MANIFESTS/${name}.manifest" && -f "${INSTALL_MANIFESTS}/${name}.current" && -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then
         if [[ "$(<${INSTALL_MANIFESTS}/${name}.current)" == "$(<${INSTALL_MANIFESTS}/${name}.old)" ]]; then
-            return
-        fi
-        if modified "$INSTALL_MANIFESTS/${name}.manifest"; then
-            # We skip also when less than 12 hours since last build
+            status_print $name I "Skip build"
             return
         fi
     fi
 
     # Create pre manifest
     {
-        find "$INSTALL_PREFIX" -type f 2>/dev/null
-        for dirs in ${(s:,:)manifesting}; do
-            find $~dirs -type f 2>/dev/null
+        find "$INSTALL_PREFIX" -type f 2>/dev/null || true
+        for dirs in ${(s:;:)manifesting}; do
+            find $~dirs -type f 2>/dev/null || true
         done
     } | sort -u > "${INSTALL_MANIFESTS}/${name}.pre-manifest"
 
     # Call build/install routines
     case "$kind" in
+        cago) build_cargo "$name" "$src" "$bld" ;;
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
         cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
         makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" ;;
-        meson) build_meson "$name" "$src" "$bld" "$config" ;;
-        pip) build_pip "$name" "$src" "$config" "$alt_options" ;;
+        meson) build_meson_wrapper "$name" "$src" "$bld" "$config" ;;
+        muon) build_muon_wrapper "$name" "$src" "$bld" "$config" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
+        uv) build_uv "$name" "$src" "$config" "$alt_options" ;;
         custom) ;;
     esac
 
@@ -67,9 +66,9 @@ build() {
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Manifesting"
         {
-            find "$INSTALL_PREFIX" -type f 2>/dev/null
-            for dirs in ${(s:,:)manifesting}; do
-                find $~dirs -type f 2>/dev/null
+            find "$INSTALL_PREFIX" -type f 2>/dev/null || true
+            for dirs in ${(s:;:)manifesting}; do
+                find $~dirs -type f 2>/dev/null || true
             done
         } | sort -u > "${INSTALL_MANIFESTS}/${name}.post-manifest"
         comm -13 "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest" >> "$INSTALL_MANIFESTS/$name.manifest"
@@ -157,6 +156,14 @@ build_cmake() {
     fi
 }
 
+build_meson_wrapper() {
+    build_meson "$name" "$src" "$bld" "$config" "meson"
+}
+
+build_muon_wrapper() {
+    build_meson "$name" "$src" "$bld" "$config" "muon"
+}
+
 build_meson() {
     local name="${1}"
     local source_directory="${2}"
@@ -168,6 +175,7 @@ build_meson() {
         "--prefix=$INSTALL_PREFIX"
     )
     meson_options+=( "${(@es:;:)4}" )
+    local meson_tool="${5}"
     # Debug print
     debug_print "(build_meson) Name $name; meson_options $meson_options"
     debug_print "              source_directory $source_directory; build_directory $build_directory"
@@ -179,12 +187,12 @@ build_meson() {
             mkdir -p "$build_directory"
         fi
         pushd "$source_directory" > /dev/null
-        meson $meson_options "$build_directory"
+        $meson_tool $meson_options "$build_directory"
         status_print $name I "Building"
-        meson compile -C "$build_directory"
+        $meson_tool compile -C "$build_directory"
         uninstall_manifested "$name"
         status_print $name I "Installing"
-        sudo meson install -C "$build_directory"
+        sudo $meson_tool install -C "$build_directory"
         popd > /dev/null
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
@@ -192,7 +200,7 @@ build_meson() {
     fi
 }
 
-build_pip() {
+build_uv() {
     local name="${1}"
     local source_directory="${2}"
     local pip_settings config_settings
@@ -207,24 +215,53 @@ build_pip() {
 
     local build_option="${4}"
     # Debug print
-    debug_print "(build_pip) Name $name; config_settings $config_settings; build_option $build_option"
-    debug_print "            source_directory $source_directory"
+    debug_print "(build_uv) Name $name; config_settings $config_settings; build_option $build_option"
+    debug_print "           source_directory $source_directory"
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        if [[ $name == "pip" ]]; then
-            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-            sudo python3 get-pip.py --force-reinstall
-            rm get-pip.py
-        fi
+        status_print $name I "Installing"
         if [[ -d "$source_directory" ]]; then
-            sudo -H pip3 install --root-user-action ignore "${config_settings[@]}" --no-deps --no-build-isolation "$source_directory"
+            sudo -H uv pip install \
+                --python "$PYTHON_EXEC" \
+                "${config_settings[@]}" \
+                --no-deps --no-build-isolation \
+                "$source_directory"
         elif [[ $build_option == "binary" ]]; then
-            sudo -H pip3 install --root-user-action ignore --no-deps --only-binary :all: --upgrade "$name"
+            sudo -H uv pip install \
+                --python "$PYTHON_EXEC" \
+                --no-deps --only-binary :all: --upgrade \
+                "$name"
         else
-            sudo -H pip3 install --root-user-action ignore "${config_settings[@]}" --no-deps --no-build-isolation --no-binary :all: --upgrade "$name"
+            sudo -H uv pip install \
+                --python "$PYTHON_EXEC" \
+                "${config_settings[@]}" \
+                --no-deps --no-build-isolation --no-binary :all: --upgrade \
+                "$name"
         fi
+        status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
-        # sudo -H pip3 uninstall -y "$name"
+        uninstall_manifested "$name"
+    fi
+}
+
+build_cargo() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    export RUSTFLAGS="-C opt-level=3 -C debuginfo=0 -C rpath=true -C link-arg=-Wl,-rpath,@loader_path/../lib"
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Building"
+        if [[ -n $build_directory ]]; then
+            mkdir -p "$build_directory"
+            cd "$build_directory"
+        fi
+        cargo build --release --manifest-path "$source_directory/Cargo.toml"
+        uninstall_manifested "$name"
+        status_print $name I "Installing"
+        sudo cargo install --force --locked --path "$source_directory" --root $INSTALL_PREFIX
+        status_print $name D "Install completed"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
     fi
 }

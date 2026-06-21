@@ -53,8 +53,10 @@ modified() {
         local mtime=$(zstat +mtime -- "$1")
         local threshold=$(( $EPOCHSECONDS - 43200 ))
         if (( mtime > threshold )); then
+            debug_print "(modified) $mtime > $threshold = true, File $1"
             return 0
         fi
+        debug_print "(modified) $mtime > $threshold = false, File $1"
     fi
     return 1
 }

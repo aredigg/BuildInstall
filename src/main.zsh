@@ -35,6 +35,11 @@ main() {
             fi
             if [[ ! -n $INSTALL_UTILITY || $INSTALL_UTILITY == "$name" ]]; then
                 print "<$name> <$kind> <$config_options> <$alt_options> <$directory> <$download_command> <$download_url> <$download_branch> <$download_sig> <$extract_strip> <$manifesting>"
+                if modified "$INSTALL_MANIFESTS/${name}.manifest"; then
+                    # We skip also when less than 12 hours since last build
+                    status_print $name I "Skip build 12 hrs"
+                    continue
+                fi
                 status_print $name I "Preparing"
                 download "$name" "$download_command" "$download_url" "$download_branch" "$download_sig" "$extract_strip"
                 build "$name" "$kind" "$config_options" "$alt_options" "$directory" "$manifesting"

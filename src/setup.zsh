@@ -125,7 +125,7 @@ setup() {
     sudo -K
     sudo -vp "Please enter password to allow system install: "
     # Keep sudo alive
-    { while kill -O "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
+    { while kill -0 "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
     BI_SUDO_PID=$!
 
     # Custom settings for specific systems

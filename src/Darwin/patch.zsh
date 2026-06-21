@@ -12,6 +12,7 @@ platform_setup() {
         xcodebuild -downloadComponent MetalToolchain
         sudo xcodebuild -downloadComponent MetalToolchain
     fi
+    export BI_RPATH_NODIST="-Wl,-rpath,${INSTALL_PREFIX}/lib"
 }
 
 # Custom pkg-config files for the builtins
@@ -231,9 +232,11 @@ pre_patch() {
     case "$name" in
         openssl)
             # There is also /System/Library/OpenSSL
-            /usr/bin/security export -k /System/Library/Keychains/SystemRootCertificates.keychain -t certs -p  > "$source_directory/keychain_root_certs.pem"
-            sudo mkdir -p "$INSTALL_PREFIX/ssl"
-            sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/cert.pem"
+            if [[ ! -f "$INSTALL_PREFIX/ssl/certs/cert.pem" ]]; then
+                /usr/bin/security export -k /System/Library/Keychains/SystemRootCertificates.keychain -t certs -p  > "$source_directory/keychain_root_certs.pem"
+                sudo mkdir -p "$INSTALL_PREFIX/ssl/certs"
+                sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/certs/cert.pem"
+            fi
             ;;
         curl)
             sed -i '' "s|\[unreleased\]|$(date '+%Y-%m-%d') \(Unsupported\)|g" "$source_directory/include/curl/curlver.h" ;;
@@ -285,11 +288,20 @@ post_patch() {
             pkgconf_omp ;;
         cpython)
             export PATH="/Library/Frameworks/Python.framework/Versions/Current/bin:$PATH"
-            export SSL_CERT_DIR="$INSTALL_PREFIX/ssl"
+            export SSL_CERT_DIR="$INSTALL_PREFIX/ssl/certs"
             export PKG_CONFIG_PATH="/Library/Frameworks/Python.framework/Versions/Current/lib/pkgconfig:$PKG_CONFIG_PATH"
+            export PYTHON_EXEC="$INSTALL_PREFIX/bin/python3"
             ;;
         ohmyposh)
             sudo mv "$INSTALL_PREFIX/bin/posh-darwin-arm64" "$INSTALL_PREFIX/bin/oh-my-posh"
+            ;;
+        helix)
+            rm -rf "$source_directory/runtime/grammars/sources/"
+            sudo cp -rPf $source_directory/runtime $INSTALL_PREFIX/libexec/helix/
+            ;;
+        vhdl_ls)
+            sudo mkdir -p $INSTALL_PREFIX/lib/rust_hdl/
+            sudo cp -rPf $source_directory/vhdl_libraries $INSTALL_PREFIX/lib/rust_hdl/vhdl_libraries
             ;;
     esac
 }

@@ -11,15 +11,10 @@ download() {
     # Debug print
     debug_print "(download) Name $name; cmd $cmd; url $url; dbr $dbr; sig $sig; strip $strip"
     # TODO possibility for url to contain several alternatives
-    if modified "$INSTALL_MANIFESTS/${name}.manifest"; then
-        # We skip download if less than 12 hours since last build
-        return
-    fi
     status_print $name I "Download"
     case "$cmd" in
         https) download_https "$name" "$url" "$sig" "$strip" ;;
         git) download_git "$name" "$url" "$dbr" "$sig" ;;
-        pip) download_pip "$name" "$url" ;;
     esac
 }
 
@@ -39,7 +34,7 @@ download_git() {
 
     if [[ ! -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then
         status_print $name I "Cloning"
-        git clone  --no-checkout "$url" "${BUILD_SOURCES_DIRECTORY}/${name}"
+        git clone --no-checkout "$url" "${BUILD_SOURCES_DIRECTORY}/${name}"
         git -C "${BUILD_SOURCES_DIRECTORY}/${name}" config --add remote.origin.fetch '^refs/heads/users/*'
         git -C "${BUILD_SOURCES_DIRECTORY}/${name}" config --add remote.origin.fetch '^refs/heads/revert-*'
         git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $branch
@@ -50,7 +45,7 @@ download_git() {
         if git -C "${BUILD_SOURCES_DIRECTORY}/${name}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
             status_print $name I "Updating"
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" reset --hard HEAD
-            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" clean -x -f -f -d
+            sudo git -C "${BUILD_SOURCES_DIRECTORY}/${name}" clean -x -f -f -d
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $branch
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" pull
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $hash
@@ -84,11 +79,20 @@ download_https() {
     fi
 
     status_print $name I "Downloading"
-    curl -sL \
-        --etag-compare "${INSTALL_MANIFESTS}/${filename}.etag" \
-        --etag-save "${INSTALL_MANIFESTS}/${filename}.etag" \
-        -o "${BUILD_SOURCES_DIRECTORY}/${filename}" \
-        "${url}"
+    local -i attempt curl_code
+    for attempt in 1 2 3; do
+        curl -sL \
+            --etag-compare "${INSTALL_MANIFESTS}/${filename}.etag" \
+            --etag-save "${INSTALL_MANIFESTS}/${filename}.etag" \
+            -o "${BUILD_SOURCES_DIRECTORY}/${filename}" \
+            "${url}" && break
+        curl_code=$?
+        if (( attempt == 3 )); then
+            return $curl_code
+        fi
+        status_print $name W "Retrying $attempt ($curl_code)"
+        sleep 2
+    done
 
     sha512 -q "${BUILD_SOURCES_DIRECTORY}/${filename}" > "${INSTALL_MANIFESTS}/${name}.current"
 
@@ -96,26 +100,6 @@ download_https() {
 
     status_print $name D "Download complete"
     extract "$name" "$filename" "$strip"
-}
-
-download_pip() {
-    local name="${1}"
-    local url="${2}"
-    local filename="($name-*.*(om[1]))"
-    # Debug print
-    debug_print "(download_pip) Name $name; url $url; filename $filename"
-
-    if [[ $INSTALL_COMMAND == "remove" ]]; then
-        status_print $name I "Removing"
-        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${filename}" ]]; then rm "${BUILD_SOURCES_DIRECTORY}/${filename}"; fi
-        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm "${SOURCES_DIRECTORY}/${name}"; fi
-        if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"; fi
-        return
-    fi
-
-    pip3 download --no-input --no-cache-dir --disable-pip-version-check --no-build-isolation --no-deps --no-binary :all: --dest "${BUILD_SOURCES_DIRECTORY}" $name
-    cd "${BUILD_SOURCES_DIRECTORY}"
-    extract $name $filename "YES"
 }
 
 # Extract routines
