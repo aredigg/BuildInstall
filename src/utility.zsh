@@ -28,7 +28,7 @@ status_print() {
         A) output="ATTN" ;;
         W) output="WARN" ;;
         F) output="FAIL" ;;
-        *) output="DEBUG" ;;
+        *) debug_print "$message" ;;
     esac
     print -f "%s %s [%-25.25s] %-30.30s\r" "$output" "$elapsed" "$name" "$message" > /dev/tty
 }
@@ -37,13 +37,24 @@ debug_print() {
     output="${1}"
     status_code="${2}"
     if [[ $DEBUG == ON ]]; then
-        TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
+        TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$EPOCHSECONDS"
         if [[ -n $status_code ]]; then
             if [[ $status_code -gt 0 ]]; then
-                print "DEBUG [$timefmt]: ERROR ${status_code} ${output}" > /dev/tty
+                print -u2 "DEBUG [$timefmt]: ERROR ${status_code} ${output}"
             fi
         else
-            print "DEBUG [$timefmt]: ${output}" > /dev/tty
+            print -u2 "DEBUG [$timefmt]: ${output}"
         fi
     fi
+}
+
+modified() {
+    if [[ -e "$1" ]]; then
+        local mtime=$(zstat +mtime -- "$1")
+        local threshold=$(( $EPOCHSECONDS - 43200 ))
+        if (( mtime > threshold )); then
+            return 0
+        fi
+    fi
+    return 1
 }

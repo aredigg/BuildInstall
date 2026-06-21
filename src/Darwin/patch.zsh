@@ -251,6 +251,20 @@ pre_patch() {
             )
             export FONTCONFIG_FONTS_DIRS="${(j:,:)FONTS}"
             ;;
+        gettext)
+            export am_cv_func_iconv_works=yes
+            ;;
+        pkgconf)
+            local f="$source_directory/libpkgconf/fragment.c"
+            if [[ -f "$f" ]] && ! grep -q 'xlocale.h' "$f"; then
+                # Darwin: make nl_langinfo_l visible under -std=c99
+                sed -i '' '1i\
+#if defined(__APPLE__)\
+#include <xlocale.h>\
+#endif
+' "$f"
+            fi
+            ;;
    esac
 }
 
@@ -259,7 +273,9 @@ post_patch() {
     name="${1}"
     case "$name" in
         libtool)
-            export LIBTOOLIZE="gnulibtoolize" ;;
+            export LIBTOOLIZE="gnulibtoolize"
+            sudo ln -sf $INSTALL_PREFIX/bin/gnulibtoolize $INSTALL_PREFIX/bin/libtoolize
+            ;;
         pkgconf)
             install_builtin_pkgconf
             sudo ln -sf $INSTALL_PREFIX/bin/pkgconf $INSTALL_PREFIX/bin/pkg-config
@@ -271,6 +287,9 @@ post_patch() {
             export PATH="/Library/Frameworks/Python.framework/Versions/Current/bin:$PATH"
             export SSL_CERT_DIR="$INSTALL_PREFIX/ssl"
             export PKG_CONFIG_PATH="/Library/Frameworks/Python.framework/Versions/Current/lib/pkgconfig:$PKG_CONFIG_PATH"
+            ;;
+        ohmyposh)
+            sudo mv "$INSTALL_PREFIX/bin/posh-darwin-arm64" "$INSTALL_PREFIX/bin/oh-my-posh"
             ;;
     esac
 }

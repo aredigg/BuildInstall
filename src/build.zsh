@@ -11,6 +11,9 @@ build() {
     local src="$BUILD_SOURCES_DIRECTORY/${base}/${directory}"
     local bld="$BUILD_BUILDS_DIRECTORY/${name}"
     local dirs
+    # Debug print
+    debug_print "(build) Name $name; kind $kind; config $config; alt_options $alt_options; directory $directory; manifesting $manifesting"
+    debug_print "        src $src; bld $bld"
 
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -30,6 +33,10 @@ build() {
         rm "$INSTALL_MANIFESTS/${name}.pre-manifest"
     elif [[ -f "$INSTALL_MANIFESTS/${name}.manifest" && -f "${INSTALL_MANIFESTS}/${name}.current" && -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then
         if [[ "$(<${INSTALL_MANIFESTS}/${name}.current)" == "$(<${INSTALL_MANIFESTS}/${name}.old)" ]]; then
+            return
+        fi
+        if modified "$INSTALL_MANIFESTS/${name}.manifest"; then
+            # We skip also when less than 12 hours since last build
             return
         fi
     fi
@@ -79,6 +86,8 @@ build() {
 
 uninstall_manifested() {
     local name="${1}"
+    # Debug print
+    debug_print "(uninstall_manifested) Name $name"
     local file directory
     if [ -f "$INSTALL_MANIFESTS/${name}.manifest" ]; then
         status_print $name I "Uninstalling"
@@ -115,7 +124,7 @@ build_cmake() {
     local source_directory="${2}"
     local build_directory="${3}"
     local cmake_options=(
-        "-Wno-dev"
+        "-Wno-author"
         "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
         '-DCMAKE_INSTALL_RPATH=@loader_path/../lib'
         "-DCMAKE_BUILD_TYPE=Release"
@@ -125,7 +134,10 @@ build_cmake() {
     if [[ $name != "ninja" ]]; then
         cmake_options+=("-GNinja")
     fi
-    cmake_options+=( "${(@s:;:)4}" )
+    cmake_options+=( "${(@es:;:)4}" )
+    # Debug print
+    debug_print "(build_cmake) Name $name; cmake_options $cmake_options"
+    debug_print "              source_directory $source_directory; build_directory $build_directory"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Configuring"
@@ -155,21 +167,25 @@ build_meson() {
         "-Ddefault_library=shared"
         "--prefix=$INSTALL_PREFIX"
     )
-    meson_options+=( "${(@s:;:)4}" )
+    meson_options+=( "${(@es:;:)4}" )
+    # Debug print
+    debug_print "(build_meson) Name $name; meson_options $meson_options"
+    debug_print "              source_directory $source_directory; build_directory $build_directory"
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Configuring"
         if [[ -n $build_directory ]]; then
             mkdir -p "$build_directory"
-            cd "$build_directory"
         fi
+        pushd "$source_directory" > /dev/null
         meson $meson_options "$build_directory"
         status_print $name I "Building"
         meson compile -C "$build_directory"
         uninstall_manifested "$name"
         status_print $name I "Installing"
         sudo meson install -C "$build_directory"
+        popd > /dev/null
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -179,10 +195,20 @@ build_meson() {
 build_pip() {
     local name="${1}"
     local source_directory="${2}"
-    local config_settings
-    config_settings+=( "${(@s:;:)3}" )
-    config_settings="--config-settings=\"$config_settings\""
+    local pip_settings config_settings
+    if [[ -n "$3" ]]; then
+        pip_settings=( "${(@es:;:)3}" )
+        local setting
+        for setting in "${pip_settings[@]}"; do
+            [[ -n "$setting" ]] && config_settings+=( "--config-settings=$setting" )
+        done
+    fi
+    local name="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
+
     local build_option="${4}"
+    # Debug print
+    debug_print "(build_pip) Name $name; config_settings $config_settings; build_option $build_option"
+    debug_print "            source_directory $source_directory"
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         if [[ $name == "pip" ]]; then
@@ -191,14 +217,14 @@ build_pip() {
             rm get-pip.py
         fi
         if [[ -d "$source_directory" ]]; then
-            sudo -H pip3 install --root-user-action ignore $config_settings --no-deps --no-build-isolation "$source_directory"
+            sudo -H pip3 install --root-user-action ignore "${config_settings[@]}" --no-deps --no-build-isolation "$source_directory"
         elif [[ $build_option == "binary" ]]; then
             sudo -H pip3 install --root-user-action ignore --no-deps --only-binary :all: --upgrade "$name"
         else
-            sudo -H pip3 install --root-user-action ignore $config_settings --no-deps --no-build-isolation --no-binary :all: --upgrade "$name"
+            sudo -H pip3 install --root-user-action ignore "${config_settings[@]}" --no-deps --no-build-isolation --no-binary :all: --upgrade "$name"
         fi
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
-        sudo -H pip3 uninstall -y "$name"
+        # sudo -H pip3 uninstall -y "$name"
         uninstall_manifested "$name"
     fi
 }
@@ -207,11 +233,14 @@ build_configure() {
     local name="${1}"
     local source_directory="${2}"
     local build_directory="${3}"
-    local configure_options
+    local -a configure_options
     configure_options+="--prefix=$INSTALL_PREFIX"
-    configure_options+=( "${(@s:;:)4}" )
+    configure_options+=( "${(@es:;:)4}" )
     # We use alt_options if we need a custom autoconf script or similar to create configure
     local configure_custom="${5}"
+    # Debug print
+    debug_print "(build_configure) Name $name; configure_options $configure_options; configure_custom $configure_custom"
+    debug_print "                  source_directory $source_directory; build_directory $build_directory"
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
@@ -236,9 +265,11 @@ build_configure() {
         elif [[ -f "${source_directory}/Configure" ]]; then
             "${source_directory}/Configure" $configure_options
         elif [[ -f "${source_directory}/bootstrap" ]]; then
+            pushd "$source_directory" > /dev/null
             if ! "${source_directory}/bootstrap" $configure_options; then
                  "${source_directory}/bootstrap" --force
             fi
+            popd > /dev/null
             if [[ -f "${source_directory}/configure" ]]; then
                 "${source_directory}/configure" $configure_options
             fi
@@ -257,7 +288,7 @@ build_configure() {
             fi
         fi
         # We should now make
-        build_make "$name"
+        build_make "$name" "$source_directory"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
     fi
@@ -267,21 +298,27 @@ build_makeonly() {
     local name="${1}"
     local source_directory="${2}"
     local build_directory="${3}"
-    local make_options
-    make_options+="--prefix=$INSTALL_PREFIX"
-    make_options+=( "${(@s:;:)4}" )
+    local -a make_options
+    make_options+=( "${(@es:;:)4}" )
     # We use alt_options for an optional prescript
     local custom_maker="${5}"
+    # Debug print
+    debug_print "(build_makeonly) Name $name; make_options $make_options; custom_maker $custom_maker"
+    debug_print "                 source_directory $source_directory; build_directory $build_directory"
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
     if [[ -n "$custom_maker" ]]; then
         $custom_maker
     fi
-    build_make "$name" "$make_options"
+    build_make "$name" "$source_directory" "$make_options"
 }
 
 build_make() {
     local name="${1}"
-    local make_options="${2}"
+    local source_directory="${2}"
+    local make_options="${3}"
+    # Debug print
+    debug_print "(build_make) Name $name; make_options $make_options"
+    debug_print "             source_directory $source_directory"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Patching"
         if [[ -f "${source_directory}/makefile" ]]; then
@@ -289,6 +326,9 @@ build_make() {
         fi
         if [[ -f "${source_directory}/Makefile" ]]; then
             sed -i '' "s|/usr/local|${INSTALL_PREFIX}${custom_prefix}|g" "$source_directory/Makefile"
+        fi
+        if [[ ! -f "Makefile" ]]; then
+            cd "$source_directory"
         fi
         status_print $name I "Making"
         # Now attempt to make, if it fails try not concurrent
@@ -309,11 +349,14 @@ no_build() {
     local source_directory="${2}"
     local build_directory="${3}"
     local install_options
-    install_options+=( "${(@s:;:)4}" )
+    install_options+=( "${(@es:;:)4}" )
     # We use alt_options for a script to install if available, otherwise name of directory under install prefix
     local install_script="${5}"
     # TODO maybe split this?
     local custom_directory="$install_script"
+    # Debug print
+    debug_print "(no_build) Name $name; install_options $install_options; install_script $install_script; "
+    debug_print "           source_directory $source_directory; build_directory $build_directory; custom_directory $custom_directory"
     uninstall_manifested "$name"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Installing"

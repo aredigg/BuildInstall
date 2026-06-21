@@ -8,7 +8,13 @@ download() {
     local sig="${5}"
     local strip="${6:=YES}"
     local name="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
+    # Debug print
+    debug_print "(download) Name $name; cmd $cmd; url $url; dbr $dbr; sig $sig; strip $strip"
     # TODO possibility for url to contain several alternatives
+    if modified "$INSTALL_MANIFESTS/${name}.manifest"; then
+        # We skip download if less than 12 hours since last build
+        return
+    fi
     status_print $name I "Download"
     case "$cmd" in
         https) download_https "$name" "$url" "$sig" "$strip" ;;
@@ -22,6 +28,8 @@ download_git() {
     local url="${2}"
     local branch="${3}"
     local hash="${4}"
+    # Debug print
+    debug_print "(download_git) Name $name; url $url; branch $branch; hash $hash"
 
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         status_print $name I "Removing"
@@ -61,6 +69,8 @@ download_https() {
     local sig="${3}"
     local strip="${4}"
     local filename="${url:t}"
+    # Debug print
+    debug_print "(download_https) Name $name; url $url; sig $sig; strip $strip; filename $filename"
 
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         status_print $name I "Removing"
@@ -91,7 +101,18 @@ download_https() {
 download_pip() {
     local name="${1}"
     local url="${2}"
-    local filename=($name-*.*(om[1]))
+    local filename="($name-*.*(om[1]))"
+    # Debug print
+    debug_print "(download_pip) Name $name; url $url; filename $filename"
+
+    if [[ $INSTALL_COMMAND == "remove" ]]; then
+        status_print $name I "Removing"
+        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${filename}" ]]; then rm "${BUILD_SOURCES_DIRECTORY}/${filename}"; fi
+        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm "${SOURCES_DIRECTORY}/${name}"; fi
+        if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"; fi
+        return
+    fi
+
     pip3 download --no-input --no-cache-dir --disable-pip-version-check --no-build-isolation --no-deps --no-binary :all: --dest "${BUILD_SOURCES_DIRECTORY}" $name
     cd "${BUILD_SOURCES_DIRECTORY}"
     extract $name $filename "YES"
@@ -103,6 +124,9 @@ extract() {
     local name="${1}"
     local filename="${2}"
     local strip="${3}"
+    # Debug print
+    debug_print "(extract) Name $name; filename $filename; strip $strip"
+
     local mime_types=(
         "application/x-gzip"            # .gz
         "application/gzip"              # .gz
@@ -126,8 +150,16 @@ extract() {
         else
             tar xf "${BUILD_SOURCES_DIRECTORY}/${filename}" -C "${BUILD_SOURCES_DIRECTORY}/${name}"
         fi
+    elif [[ " $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}") " == " application/x-mach-binary " ]]; then
+        print -u2 "${filename} is a binary executable"
+        if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then
+            rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
+        fi
+        mkdir -p "${BUILD_SOURCES_DIRECTORY}/${name}"
+        cp -Pf "${BUILD_SOURCES_DIRECTORY}/${filename}" "${BUILD_SOURCES_DIRECTORY}/${name}/"
     else
-        print "Unknown mime-type for <$filename>: $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}")"
+        print -u2 "Unknown mime-type for <$filename>: $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}")"
+        exit 4
     fi
     status_print $name D "Extracting complete"
 }

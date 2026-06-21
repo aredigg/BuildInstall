@@ -16,7 +16,7 @@ Options
     -p, --prefix    Custom install prefix (Default $BI_SYSTEM_PREFIX)
     -u, --utility   Install, remove or print only the selected utility
     -t, --temp      Temporary directory for downloads and build artifacts (Default $BI_SYSTEM_TMP)
-    -m, --manifest  Directory where manifest files are stored (Default $BI_SYSTEM_TMP/bi/manifests)
+    -m, --manifest  Directory where manifest files are stored (Default $HOME/.bi/manifests)
     -a, --archive   Create tar.xz archives of the built install
     -f, --from      Alternative csv file containg list of utilities
     -n, --nocolor   Plain output
@@ -32,7 +32,7 @@ parse() {
     declare -A opts
     opts[-p]="$BI_SYSTEM_PREFIX"
     opts[-t]="$BI_SYSTEM_TMP"
-    opts[-m]="$BI_SYSTEM_TMP/bi/manifests"
+    opts[-m]="$HOME/.bi/manifests"
     opts[-f]=""
     zparseopts -A opts -D -E -F -K \
         h -help=h \
@@ -134,7 +134,7 @@ setup() {
         source "$BI_DIRECTORY/src/$INSTALL_SYSTEM/patch.zsh"
         platform_setup
     else
-        print -u 2 "ERROR: Not on a supported system"
+        print -u2 "ERROR: Not on a supported system"
         exit 2
     fi
 

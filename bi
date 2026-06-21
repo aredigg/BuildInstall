@@ -9,6 +9,7 @@
 
 zmodload zsh/datetime
 zmodload zsh/zutil
+zmodload zsh/stat
 
 BI_VERSION="2.00"
 BI_SCRIPT="${ZSH_SCRIPT}"
@@ -25,16 +26,29 @@ typeset -g BI_DEBUG_LOCATION
 TRAPDEBUG() {
     BI_DEBUG_COMMAND=$ZSH_DEBUG_CMD
     BI_DEBUG_LOCATION=${funcfiletrace[1]:-${(%):-%N:%i}}
-#    if [[ $DEBUG == ON ]]; then
-#        TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$EPOCHSECONDS"
-#        print -rf " == DEBUG [$timefmt] == \n  %s\n--\n%s\n--\n" "$BI_DEBUG_LOCATION" "$BI_DEBUG_COMMAND" > /dev/tty
-#    fi
 }
 
 TRAPERR() {
-    print "ERROR: Status   $1" > /dev/tty
-    print "       Location $BI_DEBUG_LOCATION" > /dev/tty
-    print "       Command  $BI_DEBUG_COMMAND" > /dev/tty
+    error_code=$?
+    error_handler $error_code
+    return $error_code
+}
+
+TRAPEXIT() {
+    exit_code=$?
+    if (( exit_code != 0 )); then
+        error_handler $exit_code
+    fi
+    return $exit_code
+}
+
+error_handler() {
+    print -- "\n" > /dev/tty
+    print -- "--------------------------------------------------------------------------------" > /dev/tty
+    print -- "ERROR: Status   $1" > /dev/tty
+    print -- "       Location $BI_DEBUG_LOCATION" > /dev/tty
+    print -- "       Command  $BI_DEBUG_COMMAND" > /dev/tty
+    print -- "--------------------------------------------------------------------------------" > /dev/tty
     return $1
 }
 
