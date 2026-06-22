@@ -225,6 +225,30 @@ EOF
     fi
 }
 
+strip_build_rpath() {
+    local file="$1"
+    local build_directory="$2"
+    debug_print "(strip_build_rpath) File $file"
+    debug_print "                    build_directory $build_directory"
+    file --brief --mime-type "$file" 2>/dev/null \
+        | grep -q application/x-mach-binary || return 0
+    if otool -l "$file" 2>/dev/null | grep -q "path ${build_directory} "; then
+        sudo install_name_tool -delete_rpath "$build_directory" "$file" 2>/dev/null || true
+    fi
+}
+
+add_rpath_prefix() {
+    local file="$1"
+    debug_print "(add_rpath_prefix) File $file"
+    file --brief --mime-type "$file" 2>/dev/null \
+        | grep -q application/x-mach-binary || return 0
+    for entry in $(otool -L "$file" | awk 'NR>1{print $1}'); do
+        if [[ $entry != /* && $entry != @* ]]; then
+            sudo install_name_tool -change "$entry" "@rpath/$entry" "$file"
+        fi
+    done
+}
+
 # Patches applied after download, before build/install
 pre_patch() {
     name="${1}"
@@ -274,6 +298,7 @@ pre_patch() {
 # Patches applied after build/install
 post_patch() {
     name="${1}"
+    build_directory="${2}"
     case "$name" in
         libtool)
             export LIBTOOLIZE="gnulibtoolize"
@@ -281,6 +306,11 @@ post_patch() {
             ;;
         pkgconf)
             install_builtin_pkgconf
+            # muon don't seem to add and strip rpaths
+            strip_build_rpath $INSTALL_PREFIX/bin/pkgconf $build_directory
+            strip_build_rpath $INSTALL_PREFIX/lib/libpkgconf.dylib $build_directory
+            add_rpath_prefix $INSTALL_PREFIX/bin/pkgconf
+            add_rpath_prefix $INSTALL_PREFIX/lib/libpkgconf.dylib
             sudo ln -sf $INSTALL_PREFIX/bin/pkgconf $INSTALL_PREFIX/bin/pkg-config
             sudo ln -sf $INSTALL_PREFIX/share/man/man1/pkgconf $INSTALL_PREFIX/share/man/man1/pkg-config.1
             ;;

@@ -52,15 +52,15 @@ build() {
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
         cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
         makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" ;;
-        meson) build_meson_wrapper "$name" "$src" "$bld" "$config" ;;
-        muon) build_muon_wrapper "$name" "$src" "$bld" "$config" ;;
+        meson) build_meson "$name" "$src" "$bld" "$config" ;;
+        muon) build_muon "$name" "$src" "$bld" "$config" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
         uv) build_uv "$name" "$src" "$config" "$alt_options" ;;
         custom) ;;
     esac
 
     # Checking for patches
-    post_patch "$name"
+    post_patch "$name" "$bld"
 
     # Post manifest and complete manifest
     if [[ $INSTALL_COMMAND == "install" ]]; then
@@ -156,30 +156,23 @@ build_cmake() {
     fi
 }
 
-build_meson_wrapper() {
-    build_meson "$name" "$src" "$bld" "$config" "meson"
-}
-
-build_muon_wrapper() {
-    build_meson "$name" "$src" "$bld" "$config" "muon"
-}
-
 build_meson() {
     local name="${1}"
     local source_directory="${2}"
     local build_directory="${3}"
+    local rpath="-Wl,-rpath,@loader_path/../lib"
     local meson_options=(
         "setup"
         "--buildtype" "release"
         "-Ddefault_library=shared"
         "--prefix=$INSTALL_PREFIX"
+        "-Dc_link_args=$rpath"
+        "-Dcpp_link_args=$rpath"
     )
     meson_options+=( "${(@es:;:)4}" )
-    local meson_tool="${5}"
     # Debug print
     debug_print "(build_meson) Name $name; meson_options $meson_options"
     debug_print "              source_directory $source_directory; build_directory $build_directory"
-    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Configuring"
@@ -187,12 +180,49 @@ build_meson() {
             mkdir -p "$build_directory"
         fi
         pushd "$source_directory" > /dev/null
-        $meson_tool $meson_options "$build_directory"
+        meson $meson_options "$build_directory"
         status_print $name I "Building"
-        $meson_tool compile -C "$build_directory"
+        meson compile -C "$build_directory"
         uninstall_manifested "$name"
         status_print $name I "Installing"
-        sudo $meson_tool install -C "$build_directory"
+        sudo meson install -C "$build_directory"
+        popd > /dev/null
+        status_print $name D "Install completed"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
+}
+
+build_muon() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local rpath="-Wl,-rpath,@loader_path/../lib"
+    local meson_options=(
+        "setup"
+        "-Dbuildtype=release"
+        "-Ddefault_library=shared"
+        "-Dprefix=$INSTALL_PREFIX"
+        "-Dc_link_args=$rpath"
+        "-Dcpp_link_args=$rpath"
+    )
+    meson_options+=( "${(@es:;:)4}" )
+    # Debug print
+    debug_print "(build_muon) Name $name; meson_options $meson_options"
+    debug_print "             source_directory $source_directory; build_directory $build_directory"
+
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Configuring"
+        if [[ -n $build_directory ]]; then
+            mkdir -p "$build_directory"
+        fi
+        pushd "$source_directory" > /dev/null
+        muon $meson_options "$build_directory"
+        status_print $name I "Building"
+        muon -C "$build_directory" samu
+        uninstall_manifested "$name"
+        status_print $name I "Installing"
+        sudo muon -C "$build_directory" install
         popd > /dev/null
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
@@ -203,7 +233,7 @@ build_meson() {
 build_uv() {
     local name="${1}"
     local source_directory="${2}"
-    local pip_settings config_settings
+    local -a pip_settings config_settings
     if [[ -n "$3" ]]; then
         pip_settings=( "${(@es:;:)3}" )
         local setting
@@ -225,18 +255,18 @@ build_uv() {
             sudo -H uv pip install \
                 --python "$PYTHON_EXEC" \
                 "${config_settings[@]}" \
-                --no-deps --no-build-isolation \
+                --system --no-deps --no-build-isolation \
                 "$source_directory"
         elif [[ $build_option == "binary" ]]; then
             sudo -H uv pip install \
                 --python "$PYTHON_EXEC" \
-                --no-deps --only-binary :all: --upgrade \
+                --system --no-deps --only-binary :all: --upgrade \
                 "$name"
         else
             sudo -H uv pip install \
                 --python "$PYTHON_EXEC" \
                 "${config_settings[@]}" \
-                --no-deps --no-build-isolation --no-binary :all: --upgrade \
+                --system --no-deps --no-build-isolation --no-binary :all: --upgrade \
                 "$name"
         fi
         status_print $name D "Install completed"
@@ -384,16 +414,15 @@ build_make() {
 no_build() {
     local name="${1}"
     local source_directory="${2}"
-    local build_directory="${3}"
     local install_options
-    install_options+=( "${(@es:;:)4}" )
+    install_options+=( "${(@es:;:)3}" )
     # We use alt_options for a script to install if available, otherwise name of directory under install prefix
-    local install_script="${5}"
+    local install_script="${4}"
     # TODO maybe split this?
     local custom_directory="$install_script"
     # Debug print
     debug_print "(no_build) Name $name; install_options $install_options; install_script $install_script; "
-    debug_print "           source_directory $source_directory; build_directory $build_directory; custom_directory $custom_directory"
+    debug_print "           source_directory $source_directory; custom_directory $custom_directory"
     uninstall_manifested "$name"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Installing"
