@@ -225,13 +225,14 @@ EOF
     fi
 }
 
+# TODO combine these functions with the manifest
+
 strip_build_rpath() {
     local file="$1"
     local build_directory="$2"
     debug_print "(strip_build_rpath) File $file"
     debug_print "                    build_directory $build_directory"
-    file --brief --mime-type "$file" 2>/dev/null \
-        | grep -q application/x-mach-binary || return 0
+    file --brief --mime-type "$file" 2>/dev/null | grep -q application/x-mach-binary || return 0
     if otool -l "$file" 2>/dev/null | grep -q "path ${build_directory} "; then
         sudo install_name_tool -delete_rpath "$build_directory" "$file" 2>/dev/null || true
     fi
@@ -240,13 +241,21 @@ strip_build_rpath() {
 add_rpath_prefix() {
     local file="$1"
     debug_print "(add_rpath_prefix) File $file"
-    file --brief --mime-type "$file" 2>/dev/null \
-        | grep -q application/x-mach-binary || return 0
+    file --brief --mime-type "$file" 2>/dev/null | grep -q application/x-mach-binary || return 0
     for entry in $(otool -L "$file" | awk 'NR>1{print $1}'); do
         if [[ $entry != /* && $entry != @* ]]; then
             sudo install_name_tool -change "$entry" "@rpath/$entry" "$file"
         fi
     done
+}
+
+add_rpath() {
+    local file="$1"
+    debug_print "(add_rpath) File $file"
+    file --brief --mime-type "$file" 2>/dev/null | grep -q application/x-mach-binary || return 0
+    if ! otool -l "$file" 2>/dev/null | grep -q 'path @loader_path/../lib '; then
+        sudo install_name_tool -add_rpath @loader_path/../lib "$file" 2>/dev/null || true
+    fi
 }
 
 # Patches applied after download, before build/install
@@ -331,7 +340,10 @@ post_patch() {
             ;;
         vhdl_ls)
             sudo mkdir -p $INSTALL_PREFIX/lib/rust_hdl/
-            sudo cp -rPf $source_directory/vhdl_libraries $INSTALL_PREFIX/lib/rust_hdl/vhdl_libraries
+            sudo cp -rPf $source_directory/../vhdl_libraries $INSTALL_PREFIX/lib/rust_hdl/vhdl_libraries
+            ;;
+        glib)
+            add_rpath $INSTALL_PREFIX/lib/libglib-2.0.dylib
             ;;
     esac
 }
