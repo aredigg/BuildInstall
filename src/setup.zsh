@@ -87,6 +87,7 @@ parse() {
 
     # Different temp directory
     INSTALL_TEMP="${opts[-t]#=}"
+    INSTALL_TEMP="${${INSTALL_TEMP:a}:A}"
 
     # Different manifest directory
     INSTALL_MANIFESTS="${opts[-m]#=}"

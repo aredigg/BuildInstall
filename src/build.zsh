@@ -21,14 +21,17 @@ build() {
     fi
 
     # Checking for patches
+    status_print $name I "Patching"
+    [[ -d $src ]] && pushd "$src" > /dev/null
     pre_patch "$name" "$src"
+    [[ -d $src ]] && popd > /dev/null
 
     # Remove build directory
     status_print $name I "Cleaning"
     if [[ -d "$bld" ]]; then sudo rm -rf "$bld"; fi
 
     # Skip if same is built/installed already
-    status_print $name I "Pre manifest"
+    status_print $name I "Checking"
     if [[ -f "$INSTALL_MANIFESTS/${name}.pre-manifest" ]]; then
         rm "$INSTALL_MANIFESTS/${name}.pre-manifest"
     elif [[ -f "$INSTALL_MANIFESTS/${name}.manifest" && -f "${INSTALL_MANIFESTS}/${name}.current" && -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then
@@ -50,17 +53,20 @@ build() {
     case "$kind" in
         cago) build_cargo "$name" "$src" "$bld" ;;
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
+        configure_in_source) build_configure "$name" "$src" "" "$config" "$alt_options" ;;
         cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
         makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" ;;
         meson) build_meson "$name" "$src" "$bld" "$config" ;;
         muon) build_muon "$name" "$src" "$bld" "$config" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
         uv) build_uv "$name" "$src" "$config" "$alt_options" ;;
+        pip) exit 10 ;;
         custom) ;;
     esac
 
     # Checking for patches
-    post_patch "$name" "$bld"
+    status_print $name I "Patching"
+    post_patch "$name" "$src" "$bld"
 
     # Post manifest and complete manifest
     if [[ $INSTALL_COMMAND == "install" ]]; then
@@ -146,10 +152,10 @@ build_cmake() {
         fi
         $INSTALL_PREFIX/bin/cmake $cmake_options "$source_directory"
         status_print $name I "Building"
-        $INSTALL_PREFIX/bin/cmake --build . --parallel=$CONCURRENT_JOBS
+        $INSTALL_PREFIX/bin/cmake --build "$build_directory" --parallel=$CONCURRENT_JOBS
         uninstall_manifested "$name"
         status_print $name I "Installing"
-        sudo $INSTALL_PREFIX/bin/cmake --install .
+        sudo $INSTALL_PREFIX/bin/cmake --install "$build_directory"
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -279,7 +285,7 @@ build_cargo() {
     local name="${1}"
     local source_directory="${2}"
     local build_directory="${3}"
-    export RUSTFLAGS="-C opt-level=3 -C debuginfo=0 -C rpath=true -C link-arg=-Wl,-rpath,@loader_path/../lib"
+    export RUSTFLAGS="-C opt-level=3 -C debuginfo=0 -C rpath=true -C link-arg=-Wl,-rpath,@loader_path/../lib $RUSTFLAGS"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Building"
         if [[ -n $build_directory ]]; then
@@ -308,7 +314,7 @@ build_configure() {
     # Debug print
     debug_print "(build_configure) Name $name; configure_options $configure_options; configure_custom $configure_custom"
     debug_print "                  source_directory $source_directory; build_directory $build_directory"
-    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
+    local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib $LDFLAGS"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Configuring"
@@ -379,6 +385,11 @@ build_makeonly() {
     build_make "$name" "$source_directory" "$make_options"
 }
 
+make_target_exists() {
+    grep -E "^[a-zA-Z0-9_-]+:.*?" "Makefile" | grep -q "^$1:"
+    return $?
+}
+
 build_make() {
     local name="${1}"
     local source_directory="${2}"
@@ -394,7 +405,7 @@ build_make() {
         if [[ -f "${source_directory}/Makefile" ]]; then
             sed -i '' "s|/usr/local|${INSTALL_PREFIX}${custom_prefix}|g" "$source_directory/Makefile"
         fi
-        if [[ ! -f "Makefile" ]]; then
+        if [[ ! -f "Makefile" && ! -f "GNUmakefile" ]]; then
             cd "$source_directory"
         fi
         status_print $name I "Making"
@@ -403,9 +414,11 @@ build_make() {
         # Remove old install
         uninstall_manifested "$name"
         # Install the built utility
-        status_print $name I "Installing"
-        sudo $BUILD_MAKE_TOOL install $make_options || sudo $BUILD_MAKE_TOOL install
-        status_print $name D "Install completed"
+        if make_target_exists "install"; then
+            status_print $name I "Installing"
+            sudo $BUILD_MAKE_TOOL install $make_options || sudo $BUILD_MAKE_TOOL install
+            status_print $name D "Install completed"
+        fi
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
     fi
