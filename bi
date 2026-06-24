@@ -22,6 +22,7 @@ BI_SYSTEM_FILE="utilities.csv"
 
 typeset -g BI_DEBUG_COMMAND
 typeset -g BI_DEBUG_LOCATION
+typeset -g BI_TRAPERR
 
 TRAPDEBUG() {
     BI_DEBUG_COMMAND=$ZSH_DEBUG_CMD
@@ -29,26 +30,31 @@ TRAPDEBUG() {
 }
 
 TRAPERR() {
-    error_code=$?
-    error_handler $error_code
-    return $error_code
+    BI_TRAPERR=$?
+    error_handler $BI_TRAPERR
+    return $BI_TRAPERR
 }
 
 TRAPEXIT() {
-    exit_code=$?
-    if (( exit_code != 0 )); then
-        error_handler $exit_code
+    local -i exit_code=$?
+    if [[ ! -n $BI_TRAPERR ]]; then
+        if (( exit_code != 0 )); then
+            error_handler $exit_code
+        fi
+        return $exit_code
     fi
-    return $exit_code
+    return $BI_TRAPERR
 }
 
 error_handler() {
-    print -- "\n" > /dev/tty
-    print -- "--------------------------------------------------------------------------------" > /dev/tty
-    print -- "ERROR: Status   $1" > /dev/tty
-    print -- "       Location $BI_DEBUG_LOCATION" > /dev/tty
-    print -- "       Command  $BI_DEBUG_COMMAND" > /dev/tty
-    print -- "--------------------------------------------------------------------------------" > /dev/tty
+    if [[ -w /dev/tty ]]; then
+        print -- "\n" > /dev/tty
+        print -- "--------------------------------------------------------------------------------" > /dev/tty
+        print -- "ERROR: Status   $1" > /dev/tty
+        print -- "       Location $BI_DEBUG_LOCATION" > /dev/tty
+        print -- "       Command  $BI_DEBUG_COMMAND" > /dev/tty
+        print -- "--------------------------------------------------------------------------------" > /dev/tty
+    fi
     return $1
 }
 

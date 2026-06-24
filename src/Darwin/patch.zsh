@@ -106,7 +106,7 @@ prefix=$MACOS_SDK_PATH/usr
 exec_prefix=$MACOS_SDK_PATH/usr
 bindir=$MACOS_SDK_PATH/usr/bin
 libdir=$MACOS_SDK_PATH/usr/lib
-includedir=$SDK_PATH/usr/include/ffi
+includedir=$MACOS_SDK_PATH/usr/include/ffi
 
 Name: libffi
 Description: Library supporting Foreign Function Interfaces
@@ -136,7 +136,7 @@ prefix=$MACOS_SDK_PATH/usr
 exec_prefix=$MACOS_SDK_PATH/usr
 bindir=$MACOS_SDK_PATH/usr/bin
 libdir=$MACOS_SDK_PATH/usr/lib
-includedir=$SDK_PATH/usr/include
+includedir=$MACOS_SDK_PATH/usr/include
 
 Name: ncurses
 Description: Free software emulation of curses
@@ -166,7 +166,7 @@ prefix=$MACOS_SDK_PATH/usr
 exec_prefix=$MACOS_SDK_PATH/usr
 bindir=$MACOS_SDK_PATH/usr/bin
 libdir=$MACOS_SDK_PATH/usr/lib
-includedir=$SDK_PATH/usr/include
+includedir=$MACOS_SDK_PATH/usr/include
 
 Name: ncursesw
 Description: Free software emulation of curses
@@ -196,7 +196,7 @@ prefix=$MACOS_SDK_PATH/usr
 exec_prefix=$MACOS_SDK_PATH/usr
 bindir=$MACOS_SDK_PATH/usr/bin
 libdir=$MACOS_SDK_PATH/usr/lib
-includedir=$SDK_PATH/usr/include
+includedir=$MACOS_SDK_PATH/usr/include
 
 Name: iconv
 Description: Character set conversion library

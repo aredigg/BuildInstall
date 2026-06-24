@@ -30,7 +30,7 @@ status_print() {
         F) output="FAIL" ;;
         *) debug_print "$message" ;;
     esac
-    print -f "%s %s [%-25.25s] %-30.30s\r" "$output" "$elapsed" "$name" "$message" > /dev/tty
+    [[ -w /dev/tty ]] && print -f "%s %s [%-25.25s] %-30.30s\r" "$output" "$elapsed" "$name" "$message" > /dev/tty
 }
 
 debug_print() {

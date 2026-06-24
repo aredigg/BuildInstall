@@ -41,27 +41,19 @@ build() {
         fi
     fi
 
-    # Create pre manifest
-    {
-        find "$INSTALL_PREFIX" -type f 2>/dev/null || true
-        for dirs in ${(s:;:)manifesting}; do
-            find $~dirs -type f 2>/dev/null || true
-        done
-    } | sort -u > "${INSTALL_MANIFESTS}/${name}.pre-manifest"
-
     # Call build/install routines
     case "$kind" in
-        cago) build_cargo "$name" "$src" "$bld" ;;
-        configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" ;;
-        configure_in_source) build_configure "$name" "$src" "" "$config" "$alt_options" ;;
-        cmake) build_cmake "$name" "$src" "$bld" "$config" ;;
-        makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" ;;
-        meson) build_meson "$name" "$src" "$bld" "$config" ;;
-        muon) build_muon "$name" "$src" "$bld" "$config" ;;
-        prebuilt) no_build "$name" "$src" "$config" "$alt_options" ;;
-        uv) build_uv "$name" "$src" "$config" "$alt_options" ;;
-        pip) exit 10 ;;
+        cargo) build_cargo "$name" "$src" "$bld" "$manifesting" ;;
+        configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" "$manifesting" ;;
+        configure_in_source) build_configure "$name" "$src" "" "$config" "$alt_options" "$manifesting" ;;
+        cmake) build_cmake "$name" "$src" "$bld" "$config" "$manifesting" ;;
+        makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" "$manifesting" ;;
+        meson) build_meson "$name" "$src" "$bld" "$config" "$manifesting" ;;
+        muon) build_muon "$name" "$src" "$bld" "$config" "$manifesting" ;;
+        prebuilt) no_build "$name" "$src" "$config" "$alt_options" "$manifesting" ;;
+        uv) build_uv "$name" "$src" "$config" "$alt_options" "$manifesting" ;;
         custom) ;;
+        *) exit 10 ;;
     esac
 
     # Checking for patches
@@ -70,22 +62,43 @@ build() {
 
     # Post manifest and complete manifest
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        status_print $name I "Manifesting"
-        {
-            find "$INSTALL_PREFIX" -type f 2>/dev/null || true
-            for dirs in ${(s:;:)manifesting}; do
-                find $~dirs -type f 2>/dev/null || true
-            done
-        } | sort -u > "${INSTALL_MANIFESTS}/${name}.post-manifest"
-        comm -13 "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest" >> "$INSTALL_MANIFESTS/$name.manifest"
-        rm -f "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest"
-        if [[ $INSTALL_ARCHIVE == ON ]]; then
-            create_archive $name "$INSTALL_MANIFESTS/$name.manifest"
-        fi
+        complete_postmanifest "$name" "$manifesting"
     fi
 
     if [[ -f "${INSTALL_MANIFESTS}/${name}.current" ]]; then
         mv "${INSTALL_MANIFESTS}/${name}.current" "${INSTALL_MANIFESTS}/${name}.old"
+    fi
+}
+
+create_premanifest() {
+    local name="${1}"
+    local manifesting="${2}"
+    debug_print "(create_premanifest) Name $name Manifesting $manifesting"
+    status_print $name I "Manifesting PRE"
+    {
+        find "$INSTALL_PREFIX" -type f 2>/dev/null || true
+        for dirs in ${(s:;:)manifesting}; do
+            find $~dirs -type f 2>/dev/null || true
+        done
+    } | sort -u > "${INSTALL_MANIFESTS}/${name}.pre-manifest"
+}
+
+complete_postmanifest() {
+    local name="${1}"
+    local manifesting="${2}"
+    debug_print "(complete_postmanifest) Name $name Manifesting $manifesting"
+    status_print $name I "Manifesting POST"
+    {
+        find "$INSTALL_PREFIX" -type f 2>/dev/null || true
+        for dirs in ${(s:;:)manifesting}; do
+            find $~dirs -type f 2>/dev/null || true
+        done
+    } | sort -u > "${INSTALL_MANIFESTS}/${name}.post-manifest"
+    status_print $name I "Manifesting"
+    comm -13 "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest" >> "$INSTALL_MANIFESTS/$name.manifest"
+    rm -f "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest"
+    if [[ $INSTALL_ARCHIVE == ON ]]; then
+        create_archive $name "$INSTALL_MANIFESTS/$name.manifest"
     fi
 }
 
@@ -140,6 +153,7 @@ build_cmake() {
         cmake_options+=("-GNinja")
     fi
     cmake_options+=( "${(@es:;:)4}" )
+    local manifesting="${5}"
     # Debug print
     debug_print "(build_cmake) Name $name; cmake_options $cmake_options"
     debug_print "              source_directory $source_directory; build_directory $build_directory"
@@ -152,8 +166,9 @@ build_cmake() {
         fi
         $INSTALL_PREFIX/bin/cmake $cmake_options "$source_directory"
         status_print $name I "Building"
-        $INSTALL_PREFIX/bin/cmake --build "$build_directory" --parallel=$CONCURRENT_JOBS
+        $INSTALL_PREFIX/bin/cmake --build "$build_directory" --parallel $CONCURRENT_JOBS
         uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         sudo $INSTALL_PREFIX/bin/cmake --install "$build_directory"
         status_print $name D "Install completed"
@@ -176,6 +191,7 @@ build_meson() {
         "-Dcpp_link_args=$rpath"
     )
     meson_options+=( "${(@es:;:)4}" )
+    local manifesting="${5}"
     # Debug print
     debug_print "(build_meson) Name $name; meson_options $meson_options"
     debug_print "              source_directory $source_directory; build_directory $build_directory"
@@ -190,6 +206,7 @@ build_meson() {
         status_print $name I "Building"
         meson compile -C "$build_directory"
         uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         sudo meson install -C "$build_directory"
         popd > /dev/null
@@ -213,6 +230,7 @@ build_muon() {
         "-Dcpp_link_args=$rpath"
     )
     meson_options+=( "${(@es:;:)4}" )
+    local manifesting="${5}"
     # Debug print
     debug_print "(build_muon) Name $name; meson_options $meson_options"
     debug_print "             source_directory $source_directory; build_directory $build_directory"
@@ -227,6 +245,7 @@ build_muon() {
         status_print $name I "Building"
         muon -C "$build_directory" samu
         uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         sudo muon -C "$build_directory" install
         popd > /dev/null
@@ -248,14 +267,17 @@ build_uv() {
         done
     fi
     local name="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
-
     local build_option="${4}"
+    local manifesting="${5}"
     # Debug print
     debug_print "(build_uv) Name $name; config_settings $config_settings; build_option $build_option"
     debug_print "           source_directory $source_directory"
     local -x LDFLAGS="-Wl,-rpath,@loader_path/../lib"
 
+    # The manifest is very likely empty on macOS
+    uninstall_manifested "$name"
     if [[ $INSTALL_COMMAND == "install" ]]; then
+        create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         if [[ -d "$source_directory" ]]; then
             sudo -H uv pip install \
@@ -277,7 +299,11 @@ build_uv() {
         fi
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
-        uninstall_manifested "$name"
+        # This is hopefully enough on macOS, otherwise we have to add manifest paths
+        sudo -H uv pip uninstall \
+            --python "$PYTHON_EXEC" \
+            --system \
+            "$name"
     fi
 }
 
@@ -285,6 +311,7 @@ build_cargo() {
     local name="${1}"
     local source_directory="${2}"
     local build_directory="${3}"
+    local manifesting="${4}"
     export RUSTFLAGS="-C opt-level=3 -C debuginfo=0 -C rpath=true -C link-arg=-Wl,-rpath,@loader_path/../lib $RUSTFLAGS"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Building"
@@ -294,6 +321,7 @@ build_cargo() {
         fi
         cargo build --release --manifest-path "$source_directory/Cargo.toml"
         uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         sudo cargo install --force --locked --path "$source_directory" --root $INSTALL_PREFIX
         status_print $name D "Install completed"
@@ -311,6 +339,7 @@ build_configure() {
     configure_options+=( "${(@es:;:)4}" )
     # We use alt_options if we need a custom autoconf script or similar to create configure
     local configure_custom="${5}"
+    local manifesting="${6}"
     # Debug print
     debug_print "(build_configure) Name $name; configure_options $configure_options; configure_custom $configure_custom"
     debug_print "                  source_directory $source_directory; build_directory $build_directory"
@@ -361,7 +390,7 @@ build_configure() {
             fi
         fi
         # We should now make
-        build_make "$name" "$source_directory"
+        build_make "$name" "$source_directory" "" "$manifesting"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
     fi
@@ -375,6 +404,7 @@ build_makeonly() {
     make_options+=( "${(@es:;:)4}" )
     # We use alt_options for an optional prescript
     local custom_maker="${5}"
+    local manifesting="${6}"
     # Debug print
     debug_print "(build_makeonly) Name $name; make_options $make_options; custom_maker $custom_maker"
     debug_print "                 source_directory $source_directory; build_directory $build_directory"
@@ -382,18 +412,25 @@ build_makeonly() {
     if [[ -n "$custom_maker" ]]; then
         $custom_maker
     fi
-    build_make "$name" "$source_directory" "$make_options"
+    build_make "$name" "$source_directory" "$make_options" "$manifesting"
 }
 
 make_target_exists() {
-    grep -E "^[a-zA-Z0-9_-]+:.*?" "Makefile" | grep -q "^$1:"
-    return $?
+    local makefile
+    for makefile in Makefile GNUmakefile; do
+        [ -f "$makefile" ] || continue
+        if grep -qE "^${1}:" "$makefile"; then
+            return 0
+        fi
+    done
+    return 1
 }
 
 build_make() {
     local name="${1}"
     local source_directory="${2}"
     local make_options="${3}"
+    local manifesting="${4}"
     # Debug print
     debug_print "(build_make) Name $name; make_options $make_options"
     debug_print "             source_directory $source_directory"
@@ -413,6 +450,7 @@ build_make() {
         $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS $make_options || $BUILD_MAKE_TOOL
         # Remove old install
         uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
         # Install the built utility
         if make_target_exists "install"; then
             status_print $name I "Installing"
@@ -433,16 +471,18 @@ no_build() {
     local install_script="${4}"
     # TODO maybe split this?
     local custom_directory="$install_script"
+    local manifesting="${5}"
     # Debug print
     debug_print "(no_build) Name $name; install_options $install_options; install_script $install_script; "
     debug_print "           source_directory $source_directory; custom_directory $custom_directory"
     uninstall_manifested "$name"
     if [[ $INSTALL_COMMAND == "install" ]]; then
+        create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         if [[ -n "$install_script" || -n "$custom_directory" ]]; then
             if [[ -x "${source_directory}/${install_script}" ]]; then
                 # TODO some safety questions and checks
-                sudo "${source_directory}/${install_script}" "$install_options"
+                sudo "${source_directory}/${install_script}" "${install_options[@]}"
             else
                 if [[ ! -d "$INSTALL_PREFIX/${custom_directory}" ]]; then
                     mkdir -p "$INSTALL_PREFIX/${custom_directory}"

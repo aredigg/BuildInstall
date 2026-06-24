@@ -59,7 +59,7 @@ curl -- Requires pkgconf;brotli;nghttp2;nghttp3;libssh2;openssl;rtmpdump;zstd;ps
 unbound -- It doesn't use pkgconf,unbound,configure,--with-libexpat=$MACOS_SDK_PATH/usr;--with-libevent;--disable-flto;CPPFLAGS=-D__APPLE_USE_RFC_3542,,,git,https://github.com/NLnetLabs/unbound.git,master,,,
 libssh,libssh,cmake,-DBUILD_STATIC_LIB=ON;-DWITH_SYMBOL_VERSIONING=OFF,,,git,https://github.com/timway/libssh-mirror.git,master,,,
 tcl (versioned) -- Requires openssl;libtommath,tcl,configure,,,macosx,https,http://prdownloads.sourceforge.net/tcl/tcl9.0.3-src.tar.gz,,,,
-tk (versioned) -- Requires tcl,tk,configure,--with-tcl=${BUILD_BUILDS_DIRECTORY}/tcl;--enable-aqua=yes,,macosx,https,http://prdownloads.sourceforge.net/tcl/tcl9.0.3-src.tar.gz,,,,
+tk (versioned) -- Requires tcl,tk,configure,--with-tcl=${BUILD_BUILDS_DIRECTORY}/tcl;--enable-aqua=yes,,macosx,https,http://prdownloads.sourceforge.net/tcl/tk9.0.3-src.tar.gz,,,,
 mpdecimal (versioned),mpdecimal,configure,,,,https,https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz,,,,
 cpython (versioned) -- Requires git;pkgconf;openssl;xz;tcltk;mpdecimal,cpython,configure,LDFLAGS_NODIST=$BI_RPATH_NODIST;--enable-framework;--enable-optimizations;--with-lto;--with-dbmliborder=ndbm;--enable-ipv6;--with-system-expat;--with-system-libmpdec;--with-openssl=$INSTALL_PREFIX/ssl;--with-openssl-rpath=auto,,,git,https://github.com/python/cpython.git,main,3.14,,/Library/Frameworks/Python.framework;/Applications/Python*
 uv -- Requires cpython;rust,uv,cargo,,,crates/uv,git,https://github.com/astral-sh/uv.git,main,,,

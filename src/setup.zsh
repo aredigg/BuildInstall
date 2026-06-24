@@ -65,6 +65,10 @@ parse() {
         usage "ERROR: Invalid or missing command\n"
     fi
 
+    if [[ " ${valid_commands[@]} " != *" $INSTALL_COMMAND "* ]]; then
+        usage "ERROR: Unknown command $INSTALL_COMMAND\n"
+    fi
+
     # Display version
     if [[ $INSTALL_COMMAND = "version" ]]; then
         print "$BI_VERSION"
@@ -117,7 +121,7 @@ parse() {
 
 setup() {
     # Assert that we have an install command
-    if [[ ! -n INSTALL_COMMAND ]]; then
+    if [[ ! -n $INSTALL_COMMAND ]]; then
         print -u2 "ERROR: Missing install command"
         exit 2
     fi

@@ -15,6 +15,7 @@ download() {
     case "$cmd" in
         https) download_https "$name" "$url" "$sig" "$strip" ;;
         git) download_git "$name" "$url" "$dbr" "$sig" ;;
+        *) exit 9 ;;
     esac
 }
 
@@ -29,6 +30,8 @@ download_git() {
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         status_print $name I "Removing"
         rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
+        if [[ -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then rm "${INSTALL_MANIFESTS}/${name}.old"; fi
+        if [[ -f "${INSTALL_MANIFESTS}/${name}.current" ]]; then rm "${INSTALL_MANIFESTS}/${name}.current"; fi
         return
     fi
 
@@ -56,6 +59,8 @@ download_git() {
             download_git "$1" "$2" "$3" "$4"
         fi
     fi
+
+    git -C "${BUILD_SOURCES_DIRECTORY}/${name}" describe --always --match=HEAD --abbrev=0 > "${INSTALL_MANIFESTS}/${name}.current"
 }
 
 download_https() {
@@ -70,7 +75,7 @@ download_https() {
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         status_print $name I "Removing"
         if [[ -f "${BUILD_SOURCES_DIRECTORY}/${filename}" ]]; then rm "${BUILD_SOURCES_DIRECTORY}/${filename}"; fi
-        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm "${SOURCES_DIRECTORY}/${name}"; fi
+        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm "${BUILD_SOURCES_DIRECTORY}/${name}"; fi
         if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"; fi
         if [[ -f "${INSTALL_MANIFESTS}/${filename}.etag" ]]; then rm "${INSTALL_MANIFESTS}/${filename}.etag"; fi
         if [[ -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then rm "${INSTALL_MANIFESTS}/${name}.old"; fi
