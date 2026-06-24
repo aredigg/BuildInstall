@@ -15,6 +15,14 @@ platform_setup() {
     fi
     export BI_RPATH_NODIST="-Wl,-rpath,$INSTALL_PREFIX/lib"
     export PYTHON_EXEC=$(command -v python3)
+
+    debug_print "Initial Platform Setup"
+    debug_print "  Path $PATH"
+    debug_print "  SDK Path $MACOS_SDK_PATH"
+    debug_print "  Reported Deployment Target $MACOSX_DEPLOYMENT_TARGET"
+    debug_print "  Java Home $JAVA_HOME"
+    debug_print "  Jobs $CONCURRENT_JOBS"
+    debug_print "  Python $PYTHON_EXEC"
 }
 
 # Custom pkg-config files for the builtins

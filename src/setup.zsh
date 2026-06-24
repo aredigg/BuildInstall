@@ -46,9 +46,6 @@ parse() {
         f: -from:=f \
         n -nocolor=n \
         2>/dev/null || usage "ERROR: Invalid option entered or missing argument\n"
-    # print "command = <$1>"
-    # print "options = <${(k)opts}>"
-    # print "remaining = <$@>"
 
     # Set the install prefix
     INSTALL_PREFIX="${opts[-p]#=}"
@@ -117,6 +114,17 @@ parse() {
     if [[ -v opts[-u] ]]; then
         INSTALL_UTILITY="${opts[-u]#=}"
     fi
+
+    # debug_print "Parse Complete"
+    # debug_print "  Command $INSTALL_COMMAND"
+    # debug_print "  Prefix $INSTALL_PREFIX"
+    # debug_print "  Temp $INSTALL_TEMP"
+    # debug_print "  Manifests $INSTALL_MANIFESTS"
+    # debug_print "  File $INSTALL_UTILITIES_FILE"
+    # debug_print "  Utility $INSTALL_UTILITY"
+    # debug_print "  Archive $INSTALL_ARCHIVE, Debug $DEBUG, Verbose $VERBOSE, Plain $PLAIN_OUTPUT"
+    # debug_print "  + -- Remaining options <$@>"
+    # debug_print "options = <${(k)opts}>"
 }
 
 setup() {
@@ -179,4 +187,30 @@ setup() {
     TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
     print -ru1 $timefmt
     print -ru2 $timefmt
+
+    debug_print "Setup Complete"
+    debug_print "  Command $INSTALL_COMMAND"
+    debug_print "  Prefix $INSTALL_PREFIX"
+    debug_print "  Temp $INSTALL_TEMP"
+    debug_print "  Manifests $INSTALL_MANIFESTS"
+    debug_print "  File $INSTALL_UTILITIES_FILE"
+    debug_print "  Utility $INSTALL_UTILITY"
+    debug_print "  Archive $INSTALL_ARCHIVE, Debug $DEBUG, Verbose $VERBOSE, Plain $PLAIN_OUTPUT"
+    debug_print "+ -- +"
+    debug_print "  Pids Script $BI_SCRIPT_PID Sudo $BI_SUDO_PID"
+    debug_print "  System $INSTALL_SYSTEM"
+    debug_print "  Sources $BUILD_SOURCES_DIRECTORY"
+    debug_print "  Builds $BUILD_BUILDS_DIRECTORY"
+    debug_print "  Logs $BUILD_LOGS_DIRECTORY"
+    debug_print "  Archives $INSTALL_ARCHIVES"
+    debug_print "  Make Tool $BUILD_MAKE_TOOL"
+    debug_print "  Start Time $BI_STARTTIME $timefmt"
+    debug_print "+ -- +"
+    debug_print "  Script $BI_SCRIPT $BI_VERSION"
+    debug_print "  Script Directory $BI_DIRECTORY"
+    debug_print "+ -- +"
+    debug_print "  Logs Output"
+    debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/out.log>"
+    debug_print "  Logs Error"
+    debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/err.log>"
 }
