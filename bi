@@ -63,6 +63,7 @@ source "$BI_DIRECTORY/src/utility.zsh"
 source "$BI_DIRECTORY/src/main.zsh"
 source "$BI_DIRECTORY/src/download.zsh"
 source "$BI_DIRECTORY/src/build.zsh"
+source "$BI_DIRECTORY/src/print.zsh"
 
 parse "$@"
 setup

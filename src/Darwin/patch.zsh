@@ -15,7 +15,9 @@ platform_setup() {
     fi
     export BI_RPATH_NODIST="-Wl,-rpath,$INSTALL_PREFIX/lib"
     export PYTHON_EXEC=$(command -v python3)
+}
 
+platform_setup_debug() {
     debug_print "Initial Platform Setup"
     debug_print "  Path $PATH"
     debug_print "  SDK Path $MACOS_SDK_PATH"

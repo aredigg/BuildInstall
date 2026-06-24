@@ -34,8 +34,9 @@ status_print() {
 }
 
 debug_print() {
-    output="${1}"
-    status_code="${2}"
+    local output="${1}"
+    local status_code="${2}"
+    local timefmt
     if [[ $DEBUG == ON ]]; then
         TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$EPOCHSECONDS"
         if [[ -n $status_code ]]; then

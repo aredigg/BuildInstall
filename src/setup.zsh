@@ -9,6 +9,7 @@ Commands
     download   Download and extract only
     print      Print a list of installed tools and utilities
     remove     Remove all tools and utilities
+    clean      Remove manifests and temp directories (no uninstall)
     version    Display the current version of this script
 Options
     -h, --help      Show this help and exit
@@ -28,11 +29,11 @@ $1"
 }
 
 parse() {
-    local valid_commands=("install" "download" "print" "remove" "help" "version")
+    local valid_commands=("install" "download" "print" "remove" "clean" "help" "version")
     declare -A opts
     opts[-p]="$BI_SYSTEM_PREFIX"
     opts[-t]="$BI_SYSTEM_TMP"
-    opts[-m]="$HOME/.bi/manifests"
+    opts[-m]="$HOME/.bi"
     opts[-f]=""
     zparseopts -A opts -D -E -F -K \
         h -help=h \
@@ -91,7 +92,7 @@ parse() {
     INSTALL_TEMP="${${INSTALL_TEMP:a}:A}"
 
     # Different manifest directory
-    INSTALL_MANIFESTS="${opts[-m]#=}"
+    INSTALL_MANIFESTS="${opts[-m]#=}/manifests"
 
     # Different utilities file
     INSTALL_UTILITIES_FILE="${opts[-f]#=}"
@@ -141,6 +142,24 @@ setup() {
     { while kill -0 "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
     BI_SUDO_PID=$!
 
+    # If clean requested
+    if [[ $INSTALL_COMMAND = "clean" ]]; then
+        print "Cleaning"
+        if [[ -n "$INSTALL_TEMP" && -d "$INSTALL_TEMP/bi" ]]; then
+            print "Removing temporary directory"
+            sudo rm -rf "$INSTALL_TEMP/bi"
+        else
+            print -u2 "No temporary directory found"
+        fi
+        if [[ -n "$INSTALL_MANIFESTS" && -d "$INSTALL_MANIFESTS/../manifests" ]]; then
+            print "Removing manifest directory"
+            sudo rm -rf "$INSTALL_MANIFESTS"
+        else
+            print -u2 "No manifest directory found"
+        fi
+        exit 0
+    fi
+
     # Custom settings for specific systems
     INSTALL_SYSTEM=$(uname)
     if [[ -f "$BI_DIRECTORY/src/$INSTALL_SYSTEM/patch.zsh" ]]; then
@@ -184,6 +203,7 @@ setup() {
     exec >"$BUILD_LOG_OUT" 2>"$BUILD_LOG_ERR"
 
     # Print script starttime into the logs
+    local timefmt
     TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
     print -ru1 $timefmt
     print -ru2 $timefmt
@@ -213,4 +233,5 @@ setup() {
     debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/out.log>"
     debug_print "  Logs Error"
     debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/err.log>"
+    platform_setup_debug
 }
