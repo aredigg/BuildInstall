@@ -5,7 +5,7 @@ main() {
     local -a lines
     local name kind config_options alt_options directory
     local download_command download_url download_branch download_sig
-    local extract_strip manifesting
+    local extract_strip manifesting overflow
 
     status_print "SCRIPT" I "Preparing"
     while IFS= read -r line; do
@@ -17,25 +17,15 @@ main() {
         for (( i = 1; i <= ${#lines}; i++ )); do
             line="${lines[i]}"
             IFS=',' read -r \
-                comment \
-                name \
-                kind \
-                config_options \
-                alt_options \
-                directory \
-                download_command \
-                download_url \
-                download_branch \
-                download_sig \
-                extract_strip \
-                manifesting \
-                overflow \
-                <<< "$line"
+            comment name kind config_options alt_options directory \
+            download_command download_url download_branch download_sig \
+            extract_strip manifesting overflow <<< "$line"
             if [[ -n $overflow ]]; then
                 print -u2 "ERROR in csv <$name> <$overflow>"
             fi
             if [[ ! -n $INSTALL_UTILITY || $INSTALL_UTILITY == "$name" ]]; then
                 print "<$name> <$kind> <$config_options> <$alt_options> <$directory> <$download_command> <$download_url> <$download_branch> <$download_sig> <$extract_strip> <$manifesting>"
+                print -u2 "<$name> <$kind> <$config_options> <$alt_options> <$directory> <$download_command> <$download_url> <$download_branch> <$download_sig> <$extract_strip> <$manifesting>"
                 if ! modified "$INSTALL_MANIFESTS/${name}.manifest"; then
                     status_print $name I "Preparing"
                     download "$name" "$download_command" "$download_url" "$download_branch" "$download_sig" "$extract_strip"
@@ -53,20 +43,9 @@ main() {
         for (( i = ${#lines}; i >= 1; i-- )); do
             line="${lines[i]}"
             IFS=',' read -r \
-                comment \
-                name \
-                kind \
-                config_options \
-                alt_options \
-                directory \
-                download_command \
-                download_url \
-                download_branch \
-                download_sig \
-                extract_strip \
-                manifesting \
-                overflow \
-                <<< "$line"
+            comment name kind config_options alt_options directory \
+            download_command download_url download_branch download_sig \
+            extract_strip manifesting overflow <<< "$line"
             if [[ -n $overflow ]]; then
                 print -u2 "ERROR in csv <$name> <$overflow>"
             fi
@@ -82,20 +61,9 @@ main() {
         for (( i = 1; i <= ${#lines}; i++ )); do
             line="${lines[i]}"
             IFS=',' read -r \
-                comment \
-                name \
-                kind \
-                config_options \
-                alt_options \
-                directory \
-                download_command \
-                download_url \
-                download_branch \
-                download_sig \
-                extract_strip \
-                manifesting \
-                overflow \
-                <<< "$line"
+            comment name kind config_options alt_options directory \
+            download_command download_url download_branch download_sig \
+            extract_strip manifesting overflow <<< "$line"
             if [[ -n $overflow ]]; then
                 print -u2 "ERROR in csv <$name> <$overflow>"
             fi

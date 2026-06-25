@@ -14,7 +14,11 @@ platform_setup() {
         sudo xcodebuild -downloadComponent MetalToolchain
     fi
     export BI_RPATH_NODIST="-Wl,-rpath,$INSTALL_PREFIX/lib"
+    export BI_RPATH_REL="-Wl,-rpath,@loader_path/../lib"
+    export BI_RPATH_CMAKE='-DCMAKE_INSTALL_RPATH=@loader_path/../lib'
+
     export PYTHON_EXEC=$(command -v python3)
+    # export RUSTFLAGS="-C opt-level=3 -C debuginfo=0 -C rpath=true -C link-arg=-Wl,-rpath,@loader_path/../lib $RUSTFLAGS"
 }
 
 platform_setup_debug() {
@@ -327,6 +331,17 @@ add_rpath() {
     fi
 }
 
+platform_cargo() {
+    mkdir -p "$HOME/.cargo"
+    cat > "$HOME/.cargo/config.toml" <<'EOF'
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C", "rpath=true",
+    "-C", "link-arg=-Wl,-rpath,@loader_path/../lib",
+]
+EOF
+}
+
 # Patches applied after download, before build/install
 pre_patch() {
     name="${1}"
@@ -341,7 +356,7 @@ pre_patch() {
             fi
             ;;
         curl)
-            sed -i '' "s|\[unreleased\]|$(date '+%Y-%m-%d') \(Unsupported\)|g" "$source_directory/include/curl/curlver.h" ;;
+            "${PATCH_SED_TOOL[@]}" "s|\[unreleased\]|$(date '+%Y-%m-%d') \(Unsupported\)|g" "$source_directory/include/curl/curlver.h" ;;
         helix)
             export HELIX_DEFAULT_RUNTIME="$INSTALL_PREFIX/libexec/helix/runtime" ;;
         fontconfig)
@@ -363,7 +378,7 @@ pre_patch() {
             local f="$source_directory/libpkgconf/fragment.c"
             if [[ -f "$f" ]] && ! grep -q 'xlocale.h' "$f"; then
                 # Darwin: make nl_langinfo_l visible under -std=c99
-                sed -i '' '1i\
+                "${PATCH_SED_TOOL[@]}" '1i\
 #if defined(__APPLE__)\
 #include <xlocale.h>\
 #endif
@@ -371,20 +386,20 @@ pre_patch() {
             fi
             ;;
         lame)
-            sed -i '' "/lame_init_old/d" "$source_directory/include/libmp3lame.sym"
+            "${PATCH_SED_TOOL[@]}" "/lame_init_old/d" "$source_directory/include/libmp3lame.sym"
             curl -fsSL https://tmkk.undo.jp/lame/lame/lame-3.100-neon-20230418.diff | patch -ruN -d "$source_directory" -p0
             ;;
         flite)
-            sed -i '' "s|/proc/cpuinfo|/dev/null|g" "$source_directory/configure"
-            sed -i '' "s|/proc/cpuinfo|/dev/null|g" "$source_directory/configure.in"
+            "${PATCH_SED_TOOL[@]}" "s|/proc/cpuinfo|/dev/null|g" "$source_directory/configure"
+            "${PATCH_SED_TOOL[@]}" "s|/proc/cpuinfo|/dev/null|g" "$source_directory/configure.in"
             ;;
         rubberband)
-            sed -i '' '/#define RUBBERBAND_MATHMISC_H/a\
+            "${PATCH_SED_TOOL[@]}" '/#define RUBBERBAND_MATHMISC_H/a\
 #include <cstddef>
 ' "$source_directory/src/common/mathmisc.h"
             ;;
         shine)
-            sed -i '' "s|-export-symbols libshine.sym|-export-symbols $source_directory/libshine.sym|g" "$source_directory/Makefile.am"
+            "${PATCH_SED_TOOL[@]}" "s|-export-symbols libshine.sym|-export-symbols $source_directory/libshine.sym|g" "$source_directory/Makefile.am"
             ;;
         xavs2)
             export CFLAGS=-Wno-incompatible-pointer-types
@@ -398,8 +413,8 @@ pre_patch() {
             curl -fsSL https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff | patch -ruN -d "$source_directory" -p1
             ;;
         snort)
-            sed -i '' "s| -pagezero_size 10000 -image_base 100000000\"|\"|g" "$source_directory/cmake/FindLuaJIT.cmake"
-            sed -i '' \
+            "${PATCH_SED_TOOL[@]}" "s| -pagezero_size 10000 -image_base 100000000\"|\"|g" "$source_directory/cmake/FindLuaJIT.cmake"
+            "${PATCH_SED_TOOL[@]}" \
               -e 's/X509_NAME\* cert_subject = nullptr;/const X509_NAME* cert_subject = nullptr;/' \
               -e 's/X509_NAME\* cert_issuer = nullptr;/const X509_NAME* cert_issuer = nullptr;/' \
               -e 's/X509_NAME_ENTRY\* e = X509_NAME_get_entry/const X509_NAME_ENTRY* e = X509_NAME_get_entry/g' \
@@ -407,7 +422,7 @@ pre_patch() {
               "$source_directory/src/protocols/ssl.cc"
             ;;
         nmap)
-            sed -i '' 's|\$(PYTHON) -m build |&--wheel |g' "$source_directory/Makefile.in"
+            "${PATCH_SED_TOOL[@]}" 's|\$(PYTHON) -m build |&--wheel |g' "$source_directory/Makefile.in"
             ;;
         john)
             export CFLAGS="-g -O2 -Xpreprocessor -fopenmp -I$INSTALL_PREFIX/include $CFLAGS"
@@ -415,7 +430,7 @@ pre_patch() {
             export CPPFLAGS="-I$INSTALL_PREFIX/include $CPPFLAGS"
             ;;
         libcdio-paranoia)
-            sed -i '' 's/^[[:space:]]*extern int getopt();[[:space:]]*$/extern int getopt(int ___argc, char *const *___argv, const char *__shortopts) __THROW;/' "$source_directory/src/getopt.h"
+            "${PATCH_SED_TOOL[@]}" 's/^[[:space:]]*extern int getopt();[[:space:]]*$/extern int getopt(int ___argc, char *const *___argv, const char *__shortopts) __THROW;/' "$source_directory/src/getopt.h"
             ;;
         ffmpeg)
             patch_ffmpeg
@@ -423,7 +438,14 @@ pre_patch() {
         postgres)
             export DYLD_LIBRARY_PATH="$INSTALL_PREFIX/lib"
             ;;
-   esac
+        deno)
+            export RUSTFLAGS="-C link-arg=-fuse-ld=$INSTALL_PREFIX/llvm/bin/ld64.lld $RUSTFLAGS"
+            ;;
+        openmp)
+            export CC=/usr/bin/clang
+            export CXX=/usr/bin/clang++
+            ;;
+    esac
 }
 
 # Patches applied after build/install
@@ -492,11 +514,22 @@ post_patch() {
             unset CFLAGS 2>/dev/null || true
             ;;
         ffmpeg)
-            sudo sed -i '' 's/-Wl,-framework -Wl,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc
-            sudo sed -i '' 's/-Wl,-framework,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc
+            sudo "${PATCH_SED_TOOL[@]}" 's/-Wl,-framework -Wl,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc
+            sudo "${PATCH_SED_TOOL[@]}" 's/-Wl,-framework,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc
             ;;
         postgres)
             unset DYLD_LIBRARY_PATH 2>/dev/null || true
+            ;;
+        deno)
+            unset RUSTFLAGS 2>/dev/null || true
+            ;;
+        openmp)
+            if [[ -x "$INSTALL_PREFIX/llvm/bin/clang" ]]; then
+                export CC="$INSTALL_PREFIX/llvm/bin/clang"
+                export CXX="$INSTALL_PREFIX/llvm/bin/clang++"
+            else
+                unset CC CXX 2>/dev/null || true
+            fi
             ;;
     esac
 }
@@ -518,5 +551,14 @@ platform_env() {
         wget)
             export WGETRC="$INSTALL_PREFIX/etc/wgetrc"
             ;;
+        llvm)
+            # Use upstream clang as the driver, but Apple's SDK + libc++.
+            export CC="$INSTALL_PREFIX/llvm/bin/clang"
+            export CXX="$INSTALL_PREFIX/llvm/bin/clang++"
+            ;;
     esac
+    export CFLAGS="-isysroot $MACOS_SDK_PATH $CFLAGS"
+    export CXXFLAGS="-isysroot $MACOS_SDK_PATH $CXXFLAGS"
+    export CPPFLAGS="-isysroot $MACOS_SDK_PATH $CPPFLAGS"
+    export LDFLAGS="-isysroot $MACOS_SDK_PATH $LDFLAGS"
 }

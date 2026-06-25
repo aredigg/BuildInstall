@@ -1,6 +1,6 @@
 print_package_header() {
     print_line "Name" "Installed" "Files" "Kind" "Download" "URL" "Branch"
-    [[ -w /dev/tty ]] && print -- "---------------------------------------------------------------------" > /dev/tty
+    print -ru3 -- "---------------------------------------------------------------------"
 }
 
 print_package_status() {
@@ -29,5 +29,5 @@ print_package_status() {
 }
 
 print_line() {
-    [[ -w /dev/tty ]] && print -f "%-25.25s %-18.18s %5.5s %-9.9s %-8.8s\n" "$1" "$2" "$3" "$4" "$5" > /dev/tty
+    print -ru3 -f "%-25.25s %-18.18s %5.5s %-9.9s %-8.8s\n" "$1" "$2" "$3" "$4" "$5"
 }

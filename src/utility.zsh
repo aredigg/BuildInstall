@@ -28,23 +28,30 @@ status_print() {
         A) output="ATTN" ;;
         W) output="WARN" ;;
         F) output="FAIL" ;;
-        *) debug_print "$message" ;;
+        *) output="----" ;;
     esac
-    [[ -w /dev/tty ]] && print -f "%s %s [%-25.25s] %-30.30s\r" "$output" "$elapsed" "$name" "$message" > /dev/tty
+    print -ru3 -f "%s %s [%-25.25s] %-30.30s\r" "$output" "$elapsed" "$name" "$message"
+    debug_print "$output $name: $message"
 }
 
 debug_print() {
     local output="${1}"
     local status_code="${2}"
     local timefmt
-    if [[ $DEBUG == ON ]]; then
+    if [[ "$DEBUG" == "ON" ]]; then
         TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$EPOCHSECONDS"
         if [[ -n $status_code ]]; then
-            if [[ $status_code -gt 0 ]]; then
-                print -u2 "DEBUG [$timefmt]: ERROR ${status_code} ${output}"
+            if (( $status_code > 0 )); then
+                print -- "DEBUG [$timefmt]: ERROR ${status_code} ${output}" >> $BUILD_LOG_DBG
+                if [[ "$VERBOSE" == "ON" ]]; then
+                    print -u4 "DEBUG [$timefmt]: ERROR ${status_code} ${output}"
+                fi
             fi
         else
-            print -u2 "DEBUG [$timefmt]: ${output}"
+            print -- "DEBUG [$timefmt]: ${output}" >> $BUILD_LOG_DBG
+            if [[ "$VERBOSE" == "ON" ]]; then
+                print -u4 "DEBUG [$timefmt]: ${output}"
+            fi
         fi
     fi
 }

@@ -23,6 +23,9 @@ BI_SYSTEM_FILE="utilities.csv"
 typeset -g BI_DEBUG_COMMAND
 typeset -g BI_DEBUG_LOCATION
 typeset -g BI_TRAPERR
+typeset -g BI_SUDO_PID
+
+exec 3>&1 4>&2
 
 TRAPDEBUG() {
     BI_DEBUG_COMMAND=$ZSH_DEBUG_CMD
@@ -32,11 +35,14 @@ TRAPDEBUG() {
 TRAPERR() {
     BI_TRAPERR=$?
     error_handler $BI_TRAPERR
-    return $BI_TRAPERR
+    exit $BI_TRAPERR
 }
 
 TRAPEXIT() {
     local -i exit_code=$?
+    if [[ -n "$BI_SUDO_PID" ]]; then
+        kill "$BI_SUDO_PID" 2>/dev/null || true
+    fi
     if [[ ! -n $BI_TRAPERR ]]; then
         if (( exit_code != 0 )); then
             error_handler $exit_code
@@ -47,14 +53,12 @@ TRAPEXIT() {
 }
 
 error_handler() {
-    if [[ -w /dev/tty ]]; then
-        print -- "\n" > /dev/tty
-        print -- "--------------------------------------------------------------------------------" > /dev/tty
-        print -- "ERROR: Status   $1" > /dev/tty
-        print -- "       Location $BI_DEBUG_LOCATION" > /dev/tty
-        print -- "       Command  $BI_DEBUG_COMMAND" > /dev/tty
-        print -- "--------------------------------------------------------------------------------" > /dev/tty
-    fi
+    print -- "\n" >&4
+    print -- "--------------------------------------------------------------------------------" >&4
+    print -- "ERROR: Status   $1" >&4
+    print -- "       Location $BI_DEBUG_LOCATION" >&4
+    print -- "       Command  $BI_DEBUG_COMMAND" >&4
+    print -- "--------------------------------------------------------------------------------" >&4
     return $1
 }
 
@@ -68,8 +72,3 @@ source "$BI_DIRECTORY/src/print.zsh"
 parse "$@"
 setup
 main
-
-# print "$INSTALL_COMMAND $INSTALL_PREFIX $CONCURRENT_JOBS"
-# if [[ -n "$INSTALL_UTILITY" ]]; then
-#     print "$INSTALL_UTILITY"
-# fi

@@ -15,7 +15,6 @@ download() {
     case "$cmd" in
         https) download_https "$name" "$url" "$sig" "$strip" ;;
         git) download_git "$name" "$url" "$dbr" "$sig" ;;
-        *) exit 9 ;;
     esac
 }
 
@@ -29,9 +28,8 @@ download_git() {
 
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         status_print $name I "Removing"
-        rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
-        if [[ -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then rm "${INSTALL_MANIFESTS}/${name}.old"; fi
-        if [[ -f "${INSTALL_MANIFESTS}/${name}.current" ]]; then rm "${INSTALL_MANIFESTS}/${name}.current"; fi
+        sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
+        sudo rm -f "${INSTALL_MANIFESTS}/${name}.old" "${INSTALL_MANIFESTS}/${name}.current"
         return
     fi
 
@@ -55,7 +53,7 @@ download_git() {
             status_print $name D "Update complete"
         else
             status_print $name I "Cleaning"
-            rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
+            sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
             download_git "$1" "$2" "$3" "$4"
         fi
     fi
@@ -74,16 +72,17 @@ download_https() {
 
     if [[ $INSTALL_COMMAND == "remove" ]]; then
         status_print $name I "Removing"
-        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${filename}" ]]; then rm "${BUILD_SOURCES_DIRECTORY}/${filename}"; fi
-        if [[ -f "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm "${BUILD_SOURCES_DIRECTORY}/${name}"; fi
-        if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"; fi
-        if [[ -f "${INSTALL_MANIFESTS}/${filename}.etag" ]]; then rm "${INSTALL_MANIFESTS}/${filename}.etag"; fi
-        if [[ -f "${INSTALL_MANIFESTS}/${name}.old" ]]; then rm "${INSTALL_MANIFESTS}/${name}.old"; fi
-        if [[ -f "${INSTALL_MANIFESTS}/${name}.current" ]]; then rm "${INSTALL_MANIFESTS}/${name}.current"; fi
+        sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${filename}" "${BUILD_SOURCES_DIRECTORY}/${name}"
+        sudo rm -f "${INSTALL_MANIFESTS}/${filename}.etag" "${INSTALL_MANIFESTS}/${name}.old" "${INSTALL_MANIFESTS}/${name}.current"
         return
     fi
 
     status_print $name I "Downloading"
+    # if file is missing, remove etag to force redownload
+    if [[ ! -s "${BUILD_SOURCES_DIRECTORY}/${filename}" ]]; then
+        rm -f "${INSTALL_MANIFESTS}/${filename}.etag"
+    fi
+
     local -i attempt curl_code
     for attempt in 1 2 3; do
         curl -sL \
@@ -93,11 +92,16 @@ download_https() {
             "${url}" && break
         curl_code=$?
         if (( attempt == 3 )); then
-            return $curl_code
+            exit $curl_code
         fi
         status_print $name W "Retrying $attempt ($curl_code)"
         sleep 2
     done
+
+    if [[ ! -s "${BUILD_SOURCES_DIRECTORY}/${filename}" || " $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}") " == " text/html " ]]; then
+        debug_print "File not found at ${url} ($name)" 10
+        exit 10
+    fi
 
     sha512 -q "${BUILD_SOURCES_DIRECTORY}/${filename}" > "${INSTALL_MANIFESTS}/${name}.current"
 
@@ -130,9 +134,7 @@ extract() {
     )
     status_print $name I "Extracting"
     if [[ " ${mime_types[@]} " =~ " $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}") " ]]; then
-        if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then
-            rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
-        fi
+        rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
         mkdir -p "${BUILD_SOURCES_DIRECTORY}/${name}"
         if [[ "$strip" == "YES" ]]; then
             tar xf "${BUILD_SOURCES_DIRECTORY}/${filename}" -C "${BUILD_SOURCES_DIRECTORY}/${name}" --strip-components=1
@@ -141,9 +143,7 @@ extract() {
         fi
     elif [[ " $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}") " == " application/x-mach-binary " ]]; then
         print -u2 "${filename} is a binary executable"
-        if [[ -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then
-            rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
-        fi
+        rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
         mkdir -p "${BUILD_SOURCES_DIRECTORY}/${name}"
         cp -Pf "${BUILD_SOURCES_DIRECTORY}/${filename}" "${BUILD_SOURCES_DIRECTORY}/${name}/"
     else

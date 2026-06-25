@@ -88,8 +88,7 @@ parse() {
     fi
 
     # Different temp directory
-    INSTALL_TEMP="${opts[-t]#=}"
-    INSTALL_TEMP="${${INSTALL_TEMP:a}:A}"
+    INSTALL_TEMP="${${opts[-t]#=}:a}"
 
     # Different manifest directory
     INSTALL_MANIFESTS="${opts[-m]#=}/manifests"
@@ -115,17 +114,6 @@ parse() {
     if [[ -v opts[-u] ]]; then
         INSTALL_UTILITY="${opts[-u]#=}"
     fi
-
-    # debug_print "Parse Complete"
-    # debug_print "  Command $INSTALL_COMMAND"
-    # debug_print "  Prefix $INSTALL_PREFIX"
-    # debug_print "  Temp $INSTALL_TEMP"
-    # debug_print "  Manifests $INSTALL_MANIFESTS"
-    # debug_print "  File $INSTALL_UTILITIES_FILE"
-    # debug_print "  Utility $INSTALL_UTILITY"
-    # debug_print "  Archive $INSTALL_ARCHIVE, Debug $DEBUG, Verbose $VERBOSE, Plain $PLAIN_OUTPUT"
-    # debug_print "  + -- Remaining options <$@>"
-    # debug_print "options = <${(k)opts}>"
 }
 
 setup() {
@@ -192,11 +180,18 @@ setup() {
         "$INSTALL_MANIFESTS"
     BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/out.log"
     BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/err.log"
+    BUILD_LOG_DBG="${BUILD_LOGS_DIRECTORY}/dbg.log"
 
     # Check if we have gnumake
     BUILD_MAKE_TOOL="make"
     if command -v gnumake >/dev/null 2>&1; then
         BUILD_MAKE_TOOL="gnumake"
+    fi
+
+    # Check the sed tool
+    PATCH_SED_TOOL=(sed -i '')
+    if sed --version 2>/dev/null | grep -q 'GNU'; then
+        PATCH_SED_TOOL=(sed -i)
     fi
 
     # Redirect standard out and error
@@ -207,6 +202,14 @@ setup() {
     TZ=UTC strftime -s timefmt '%Y-%m-%d %H:%M:%S' "$BI_STARTTIME"
     print -ru1 $timefmt
     print -ru2 $timefmt
+    if [[ "$DEBUG" == "ON" ]]; then
+        print $timefmt > $BUILD_LOG_DBG
+    fi
+
+    # Remove cargo folder
+    sudo rm -rf "$HOME/.cargo"
+    platform_cargo
+
 
     debug_print "Setup Complete"
     debug_print "  Command $INSTALL_COMMAND"
@@ -233,5 +236,9 @@ setup() {
     debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/out.log>"
     debug_print "  Logs Error"
     debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/err.log>"
+    if [[ "$DEBUG" == "ON" ]]; then
+        debug_print "  Logs Debug"
+        debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/dbg.log>"
+    fi
     platform_setup_debug
 }
