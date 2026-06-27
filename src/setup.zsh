@@ -178,8 +178,8 @@ setup() {
         "$BUILD_LOGS_DIRECTORY" \
         "$INSTALL_ARCHIVES" \
         "$INSTALL_MANIFESTS"
-    BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/out.log"
-    BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/err.log"
+    BUILD_LOG_OUT="${BUILD_LOGS_DIRECTORY}/SCRIPT-out.log"
+    BUILD_LOG_ERR="${BUILD_LOGS_DIRECTORY}/SCRIPT-err.log"
     BUILD_LOG_DBG="${BUILD_LOGS_DIRECTORY}/dbg.log"
 
     # Check if we have gnumake
@@ -233,9 +233,9 @@ setup() {
     debug_print "  Script Directory $BI_DIRECTORY"
     debug_print "+ -- +"
     debug_print "  Logs Output"
-    debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/out.log>"
+    debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/*-out.log>"
     debug_print "  Logs Error"
-    debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/err.log>"
+    debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/*-err.log>"
     if [[ "$DEBUG" == "ON" ]]; then
         debug_print "  Logs Debug"
         debug_print "  <tail -f $BUILD_LOGS_DIRECTORY/dbg.log>"

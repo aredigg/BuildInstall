@@ -20,9 +20,10 @@ download() {
 
 download_git() {
     local name="${1}"
-    local url="${2}"
+    local urls="${2}"
     local branch="${3}"
     local hash="${4}"
+    local error_code
     # Debug print
     debug_print "(download_git) Name $name; url $url; branch $branch; hash $hash"
 
@@ -33,29 +34,40 @@ download_git() {
         return
     fi
 
-    if [[ ! -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then
-        status_print $name I "Cloning"
-        git clone --no-checkout "$url" "${BUILD_SOURCES_DIRECTORY}/${name}"
-        git -C "${BUILD_SOURCES_DIRECTORY}/${name}" config --add remote.origin.fetch '^refs/heads/users/*'
-        git -C "${BUILD_SOURCES_DIRECTORY}/${name}" config --add remote.origin.fetch '^refs/heads/revert-*'
-        git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $branch
-        git -C "${BUILD_SOURCES_DIRECTORY}/${name}" submodule update --init --recursive
-        git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $hash
-        status_print $name D "Cloning complete"
-    else
-        if git -C "${BUILD_SOURCES_DIRECTORY}/${name}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-            status_print $name I "Updating"
-            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" reset --hard HEAD
-            sudo git -C "${BUILD_SOURCES_DIRECTORY}/${name}" clean -x -f -f -d
-            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $branch
-            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" pull
-            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $hash
-            status_print $name D "Update complete"
+    for url in ${(s:;:)urls}; do
+        error_code=0
+        if [[ ! -d "${BUILD_SOURCES_DIRECTORY}/${name}" ]]; then
+            status_print $name I "Cloning"
+            git clone --no-checkout "$url" "${BUILD_SOURCES_DIRECTORY}/${name}" || { error_code=$?; continue; }
+            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" config --add remote.origin.fetch '^refs/heads/users/*'
+            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" config --add remote.origin.fetch '^refs/heads/revert-*'
+            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $branch
+            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" submodule update --init --recursive
+            git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $hash
+            status_print $name D "Cloning complete"
         else
-            status_print $name I "Cleaning"
-            sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
-            download_git "$1" "$2" "$3" "$4"
+            if git -C "${BUILD_SOURCES_DIRECTORY}/${name}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+                status_print $name I "Updating"
+                git -C "${BUILD_SOURCES_DIRECTORY}/${name}" remote set-url origin "$url"
+                git -C "${BUILD_SOURCES_DIRECTORY}/${name}" reset --hard HEAD
+                sudo git -C "${BUILD_SOURCES_DIRECTORY}/${name}" clean -x -f -f -d
+                git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $branch
+                git -C "${BUILD_SOURCES_DIRECTORY}/${name}" pull || { error_code=$?; continue; }
+                git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $hash
+                status_print $name D "Update complete"
+            else
+                status_print $name I "Cleaning"
+                sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
+                download_git "$1" "$2" "$3" "$4"
+            fi
         fi
+        break
+    done
+
+    if (( error_code != 0 )); then
+        status_print $name I "Cleaning"
+        sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
+        exit $error_code
     fi
 
     git -C "${BUILD_SOURCES_DIRECTORY}/${name}" describe --always --match=HEAD --abbrev=0 > "${INSTALL_MANIFESTS}/${name}.current"

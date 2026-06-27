@@ -46,6 +46,7 @@ build() {
         configure) build_configure "$name" "$src" "$bld" "$config" "$alt_options" "$manifesting" ;;
         configure_in_source) build_configure "$name" "$src" "" "$config" "$alt_options" "$manifesting" ;;
         cmake) build_cmake "$name" "$src" "$bld" "$config" "$manifesting" ;;
+        golang) build_golang "$name" "$src" "$bld" "$config" "$alt_options" "$manifesting" ;;
         makeonly) build_makeonly "$name" "$src" "$bld" "$config" "$alt_options" "$manifesting" ;;
         meson) build_meson "$name" "$src" "$bld" "$config" "$manifesting" ;;
         muon) build_muon "$name" "$src" "$bld" "$config" "$manifesting" ;;
@@ -315,6 +316,9 @@ build_cargo() {
     local source_directory="${2}"
     local build_directory="${3}"
     local manifesting="${4}"
+    # Debug print
+    debug_print "(build_cargo) Name $name"
+    debug_print "              source_directory $source_directory; build_directory $build_directory"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Building"
         if [[ -n $build_directory ]]; then
@@ -325,7 +329,7 @@ build_cargo() {
         uninstall_manifested "$name"
         create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
-        sudo cargo install --force --locked --path "$source_directory" --root $INSTALL_PREFIX
+        sudo RUSTFLAGS="$RUSTFLAGS" cargo install --force --locked --path "$source_directory" --root $INSTALL_PREFIX
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -337,6 +341,9 @@ build_deno() {
     local source_directory="${2}"
     local target="${3}"
     local manifesting="${4}"
+    # Debug print
+    debug_print "(build_deno) Name $name; Target $target"
+    debug_print "             source_directory $source_directory"
     uninstall_manifested "$name"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         create_premanifest "$name" "$manifesting"
@@ -355,6 +362,9 @@ build_zig() {
     local -a zig_options
     zig_options+=( "${(@es:;:)4}" )
     local manifesting="${5}"
+    # Debug print
+    debug_print "(build_zig) Name $name; zig_options $zig_options"
+    debug_print "            source_directory $source_directory; build_directory $build_directory"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Building"
         mkdir -p "$build_directory"
@@ -364,6 +374,37 @@ build_zig() {
         create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
         sudo zig build -Doptimize=ReleaseFast --build-file "$source_directory/build.zig" --cache-dir "$build_directory/zig-cache" install -p "$INSTALL_PREFIX"
+        status_print $name D "Install completed"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
+    fi
+}
+
+build_golang() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local -a go_options
+    go_options+=( "${(@es:;:)4}" )
+    local binary_name="${5}"
+    local manifesting="${6}"
+    # Debug print
+    debug_print "(build_golang) Name $name; go_options $go_options; binary_name $binary_name"
+    debug_print "               source_directory $source_directory; build_directory $build_directory"
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Preparing"
+        if [[ -n $build_directory ]]; then
+            mkdir -p "$build_directory"
+            cd "$build_directory"
+        fi
+        GOCACHE="$build_directory/gocache"
+        CGO_ENABLED=0
+        status_print $name I "Building"
+        go build -C "$source_directory" -trimpath -ldflags="-s -w -linkmode=external -extldflags=$BI_RPATH_REL" -o ${build_directory}/${name} .
+        status_print $name I "Installing"
+        uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
+        sudo install -Dm755 ${build_directory}/${name} "${INSTALL_PREFIX}/bin/${binary_name}"
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -542,7 +583,7 @@ no_build() {
                 local directory
                 local copied=0
                 for directory in "${directories[@]}"; do
-                    if [[ ! -d "$source_directory/$directory" ]]; then
+                    if [[ -d "$source_directory/$directory" ]]; then
                         sudo cp -rPf "$source_directory/$directory" "$INSTALL_PREFIX/"
                         copied=1
                     fi

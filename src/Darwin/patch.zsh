@@ -469,7 +469,7 @@ post_patch() {
             ;;
         libomp)
             pkgconf_omp ;;
-        ohmyposh)
+        ohmyposh_bin)
             sudo mv "$INSTALL_PREFIX/bin/posh-darwin-arm64" "$INSTALL_PREFIX/bin/oh-my-posh"
             ;;
         helix)
@@ -531,6 +531,20 @@ post_patch() {
                 unset CC CXX 2>/dev/null || true
             fi
             ;;
+        llvm)
+            # the stupid prebuilt llvm-config has homebrew paths compiled in (--system-libs).
+            # In future probably we should build the entire project ourselves
+            sudo mv "$INSTALL_PREFIX/llvm/bin/llvm-config" \
+                    "$INSTALL_PREFIX/llvm/bin/llvm-config.binary"
+            sudo tee "$INSTALL_PREFIX/llvm/bin/llvm-config" >/dev/null <<EOF
+#!/bin/sh
+exec "$INSTALL_PREFIX/llvm/bin/llvm-config.binary" "\$@" | sed \\
+    -e 's|/opt/homebrew/lib/libzstd.a|$INSTALL_PREFIX/lib/libzstd.dylib|g' \\
+    -e 's|/opt/homebrew/lib/libzstd.dylib|$INSTALL_PREFIX/lib/libzstd.dylib|g' \\
+    -e 's|/opt/homebrew/lib/|$INSTALL_PREFIX/lib/|g'
+EOF
+            sudo chmod +x "$INSTALL_PREFIX/llvm/bin/llvm-config"
+            ;;
     esac
 }
 
@@ -556,9 +570,12 @@ platform_env() {
             export CC="$INSTALL_PREFIX/llvm/bin/clang"
             export CXX="$INSTALL_PREFIX/llvm/bin/clang++"
             ;;
+        golang)
+            export PATH="$INSTALL_PREFIX/go/bin:$PATH"
+            ;;
     esac
-    export CFLAGS="-isysroot $MACOS_SDK_PATH $CFLAGS"
-    export CXXFLAGS="-isysroot $MACOS_SDK_PATH $CXXFLAGS"
-    export CPPFLAGS="-isysroot $MACOS_SDK_PATH $CPPFLAGS"
-    export LDFLAGS="-isysroot $MACOS_SDK_PATH $LDFLAGS"
+    export CFLAGS="-isysroot $MACOS_SDK_PATH"
+    export CXXFLAGS="-isysroot $MACOS_SDK_PATH"
+    export CPPFLAGS="-isysroot $MACOS_SDK_PATH"
+    export LDFLAGS="-isysroot $MACOS_SDK_PATH"
 }
