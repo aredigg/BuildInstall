@@ -1,4 +1,4 @@
-# build and install
+# build and install - Use Configuring, Building, Installing
 
 build() {
     local name="${1}"
@@ -10,6 +10,7 @@ build() {
     local base="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
     local src="$BUILD_SOURCES_DIRECTORY/${base}/${directory}"
     local bld="$BUILD_BUILDS_DIRECTORY/${name}"
+    status_print $name I "Build"
     # Debug print
     debug_print "(build) Name $name; Base $base; kind $kind; config $config; alt_options $alt_options; directory $directory; manifesting $manifesting"
     debug_print "        src $src; bld $bld"
@@ -22,7 +23,7 @@ build() {
     # Checking for patches
     status_print $name I "Patching"
     [[ -d $src ]] && pushd "$src" > /dev/null
-    pre_patch "$name" "$src"
+    pre_patch "$name" "$src" "$bld"
     [[ -d $src ]] && popd > /dev/null
 
     # Remove build directory
@@ -51,6 +52,7 @@ build() {
         meson) build_meson "$name" "$src" "$bld" "$config" "$manifesting" ;;
         muon) build_muon "$name" "$src" "$bld" "$config" "$manifesting" ;;
         npm) build_deno "$name" "$src" "$config" "$manifesting" ;;
+        manifest) only_manifest "$name" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" "$manifesting" ;;
         uv) build_uv "$name" "$src" "$config" "$alt_options" "$manifesting" ;;
         zig) build_zig "$name" "$src" "$bld" "$config" "$manifesting" ;;
@@ -77,7 +79,7 @@ create_premanifest() {
     local manifesting="${2}"
     local dirs
     debug_print "(create_premanifest) Name $name Manifesting $manifesting"
-    status_print $name I "Manifesting PRE"
+    status_print $name I "Manifesting"
     {
         find "$INSTALL_PREFIX" -type f 2>/dev/null || true
         for dirs in ${(s:;:)manifesting}; do
@@ -91,7 +93,7 @@ complete_postmanifest() {
     local manifesting="${2}"
     local dirs
     debug_print "(complete_postmanifest) Name $name Manifesting $manifesting"
-    status_print $name I "Manifesting POST"
+    status_print $name I "Manifesting"
     {
         find "$INSTALL_PREFIX" -type f 2>/dev/null || true
         for dirs in ${(s:;:)manifesting}; do
@@ -104,6 +106,7 @@ complete_postmanifest() {
     if [[ $INSTALL_ARCHIVE == ON ]]; then
         create_archive $name "$INSTALL_MANIFESTS/$name.manifest"
     fi
+    status_print $name D "Manifesting completed"
 }
 
 uninstall_manifested() {
@@ -124,14 +127,14 @@ uninstall_manifested() {
         local -U directories=( "${files:h}" )
         directories=( "${(O)directories[@]}" )
         # remove the files
-        status_print $name I "Removing files"
+        debug_print "(uninstall_manifested) Name $name Removing files"
         for file in "${files[@]}"; do
             if [[ -f "$file" || -L "$file" ]]; then
                 sudo rm -f "$file"
             fi
         done
         # attempt to remove directories if empty
-        status_print $name I "Cleaning directories"
+        debug_print "(uninstall_manifested) Name $name Cleaning directories"
         for directory in "${directories[@]}"; do
             if [[ -d "$directory" ]]; then
                 sudo rmdir "$directory" 2>/dev/null || true
@@ -139,7 +142,17 @@ uninstall_manifested() {
         done
         # finally remove the manifest file
         rm -f "$INSTALL_MANIFESTS/${name}.manifest"
-        status_print $name D "Uninstall complete"
+        status_print $name D "Uninstall completed"
+    fi
+}
+
+# Can be used if custom install on os-specific patches
+only_manifest() {
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
     fi
 }
 
@@ -270,11 +283,12 @@ build_uv() {
             [[ -n "$setting" ]] && config_settings+=( "--config-settings=$setting" )
         done
     fi
-    local base="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
+    local package="${name#py_}"
+    package="${package%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
     local build_option="${4}"
     local manifesting="${5}"
     # Debug print
-    debug_print "(build_uv) Name $name; config_settings $config_settings; build_option $build_option"
+    debug_print "(build_uv) Name $name; Package $package; config_settings $config_settings; build_option $build_option"
     debug_print "           source_directory $source_directory"
     local -x LDFLAGS="$BI_RPATH_REL $LDFLAGS"
 
@@ -293,13 +307,13 @@ build_uv() {
             sudo -H uv pip install \
                 --python "$PYTHON_EXEC" \
                 --system --no-deps --only-binary :all: --upgrade \
-                "$base"
+                "$package"
         else
             sudo -H uv pip install \
                 --python "$PYTHON_EXEC" \
                 "${config_settings[@]}" \
                 --system --no-deps --no-build-isolation --no-binary :all: --upgrade \
-                "$base"
+                "$package"
         fi
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
@@ -307,7 +321,7 @@ build_uv() {
         sudo -H uv pip uninstall \
             --python "$PYTHON_EXEC" \
             --system \
-            "$base"
+            "$package"
     fi
 }
 
@@ -369,11 +383,11 @@ build_zig() {
         status_print $name I "Building"
         mkdir -p "$build_directory"
         cd "$build_directory"
-        zig build -Doptimize=ReleaseFast --build-file "$source_directory/build.zig" --cache-dir "$build_directory/zig-cache"
+        $INSTALL_PREFIX/ziglang/zig build -Doptimize=ReleaseFast --build-file "$source_directory/build.zig" --cache-dir "$build_directory/zig-cache"
         uninstall_manifested "$name"
         create_premanifest "$name" "$manifesting"
         status_print $name I "Installing"
-        sudo zig build -Doptimize=ReleaseFast --build-file "$source_directory/build.zig" --cache-dir "$build_directory/zig-cache" install -p "$INSTALL_PREFIX"
+        sudo $INSTALL_PREFIX/ziglang/zig build -Doptimize=ReleaseFast --build-file "$source_directory/build.zig" --cache-dir "$build_directory/zig-cache" install -p "$INSTALL_PREFIX"
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -392,19 +406,20 @@ build_golang() {
     debug_print "(build_golang) Name $name; go_options $go_options; binary_name $binary_name"
     debug_print "               source_directory $source_directory; build_directory $build_directory"
     if [[ $INSTALL_COMMAND == "install" ]]; then
-        status_print $name I "Preparing"
+        status_print $name I "Configuring"
         if [[ -n $build_directory ]]; then
             mkdir -p "$build_directory"
             cd "$build_directory"
         fi
-        GOCACHE="$build_directory/gocache"
-        CGO_ENABLED=0
+        local -x GOCACHE="$build_directory/gocache"
+        # local -x CGO_ENABLED=0
         status_print $name I "Building"
         go build -C "$source_directory" -trimpath -ldflags="-s -w -linkmode=external -extldflags=$BI_RPATH_REL" -o ${build_directory}/${name} .
         status_print $name I "Installing"
         uninstall_manifested "$name"
         create_premanifest "$name" "$manifesting"
-        sudo install -Dm755 ${build_directory}/${name} "${INSTALL_PREFIX}/bin/${binary_name}"
+        sudo mkdir -p "$INSTALL_PREFIX/bin"
+        sudo install -Dm755 $build_directory/$name "$INSTALL_PREFIX/bin/$binary_name"
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
@@ -425,6 +440,7 @@ build_configure() {
     debug_print "(build_configure) Name $name; configure_options $configure_options; configure_custom $configure_custom"
     debug_print "                  source_directory $source_directory; build_directory $build_directory"
     local -x LDFLAGS="$BI_RPATH_REL $LDFLAGS"
+    debug_print "                  LDFLAGS <$LDFLAGS>"
 
     if [[ $INSTALL_COMMAND == "install" ]]; then
         status_print $name I "Configuring"
@@ -486,6 +502,7 @@ build_makeonly() {
     # We use alt_options for an optional prescript
     local custom_maker="${5}"
     local manifesting="${6}"
+    status_print $name I "Configuring"
     # Debug print
     debug_print "(build_makeonly) Name $name; make_options $make_options; custom_maker $custom_maker"
     debug_print "                 source_directory $source_directory; build_directory $build_directory"
@@ -497,14 +514,8 @@ build_makeonly() {
 }
 
 make_target_exists() {
-    local makefile
-    for makefile in Makefile GNUmakefile; do
-        [ -f "$makefile" ] || continue
-        if grep -qE "^${1}:" "$makefile"; then
-            return 0
-        fi
-    done
-    return 1
+    grep -E "^[a-zA-Z0-9_-]+:.*?" "$2" | grep -q "^$1:"
+    return $?
 }
 
 build_make() {
@@ -527,18 +538,18 @@ build_make() {
         if [[ ! -f "Makefile" && ! -f "GNUmakefile" ]]; then
             cd "$source_directory"
         fi
-        status_print $name I "Making"
+        status_print $name I "Building"
         # Now attempt to make, if it fails try not concurrent
         $BUILD_MAKE_TOOL -j$CONCURRENT_JOBS "${make_options[@]}" || $BUILD_MAKE_TOOL
         # Remove old install
         uninstall_manifested "$name"
         create_premanifest "$name" "$manifesting"
         # Install the built utility
-        if make_target_exists "install"; then
-            status_print $name I "Installing"
-            sudo $BUILD_MAKE_TOOL install "${make_options[@]}" || sudo $BUILD_MAKE_TOOL install
-            status_print $name D "Install completed"
-        fi
+#        if make_target_exists "install" "Makefile" || make_target_exists "install" "GNUmakefile"; then
+        status_print $name I "Installing"
+        sudo $BUILD_MAKE_TOOL install "${make_options[@]}" || sudo $BUILD_MAKE_TOOL install || true
+        status_print $name D "Install completed"
+#        fi
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         uninstall_manifested "$name"
     fi

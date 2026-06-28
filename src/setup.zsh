@@ -172,6 +172,7 @@ setup() {
     BUILD_BUILDS_DIRECTORY="${INSTALL_TEMP}/bi/builds"
     BUILD_LOGS_DIRECTORY="${INSTALL_TEMP}/bi/logs"
     INSTALL_ARCHIVES="${INSTALL_TEMP}/bi/archives"
+    rm -rf "$BUILD_LOGS_DIRECTORY"
     mkdir -p \
         "$BUILD_SOURCES_DIRECTORY" \
         "$BUILD_BUILDS_DIRECTORY" \

@@ -17,17 +17,17 @@ print_package_status() {
         installed="Incomplete"
     elif [[ -f "$manifest" ]]; then
         TZ=UTC strftime -s installed '%Y-%m-%d %H:%M' "$(zstat +mtime -- "$manifest")"
-        local -a lines
-        while IFS= read -r line; do
-            [[ -z $line ]] && continue
-            lines+=( "$line" )
-        done < "$manifest"
-        files=${#lines}
+        files=$(wc -l -- $manifest | awk '{print $1}')
+#        local -i files=0
+#        while IFS= read -r line; do
+#            [[ -z $line ]] && continue
+#            files=$((files+1))
+#        done < "$manifest"
     fi
     status_print $name I "Outputting"
     print_line "$name" "$installed" "$files" "$kind" "$download" "$url" "$branch"
 }
 
 print_line() {
-    print -ru3 -f "%-25.25s %-18.18s %5.5s %-9.9s %-8.8s\n" "$1" "$2" "$3" "$4" "$5"
+    print -ru3 -f "%-25.25s %-18.18s %7.7s %-9.9s %-8.8s\n" "$1" "$2" "$3" "$4" "$5"
 }

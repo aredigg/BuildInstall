@@ -346,14 +346,15 @@ EOF
 pre_patch() {
     name="${1}"
     source_directory="${2}"
+    build_directory="${3}"
     case "$name" in
         openssl)
-            # There is also /System/Library/OpenSSL
-            if [[ ! -f "$INSTALL_PREFIX/ssl/certs/cert.pem" ]]; then
-                /usr/bin/security export -k /System/Library/Keychains/SystemRootCertificates.keychain -t certs -p  > "$source_directory/keychain_root_certs.pem"
-                sudo mkdir -p "$INSTALL_PREFIX/ssl/certs"
-                sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/certs/cert.pem"
-            fi
+            # There is also /System/Library/OpenSSL and /private/etc/ssl (LibreSSL dir)
+#            if [[ ! -f "$INSTALL_PREFIX/ssl/certs/cert.pem" ]]; then
+#                /usr/bin/security export -k /System/Library/Keychains/SystemRootCertificates.keychain -t certs -p > "$source_directory/keychain_root_certs.pem"
+#                sudo mkdir -p "$INSTALL_PREFIX/ssl/certs"
+#                sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/certs/cert.pem"
+#            fi
             ;;
         curl)
             "${PATCH_SED_TOOL[@]}" "s|\[unreleased\]|$(date '+%Y-%m-%d') \(Unsupported\)|g" "$source_directory/include/curl/curlver.h" ;;
@@ -438,12 +439,19 @@ pre_patch() {
         postgres)
             export DYLD_LIBRARY_PATH="$INSTALL_PREFIX/lib"
             ;;
-        deno)
+        deno_cargo)
             export RUSTFLAGS="-C link-arg=-fuse-ld=$INSTALL_PREFIX/llvm/bin/ld64.lld $RUSTFLAGS"
             ;;
         openmp)
             export CC=/usr/bin/clang
             export CXX=/usr/bin/clang++
+            ;;
+        tablecruncher)
+            export LDFLAGS="-framework ScreenCaptureKit $LDFLAGS"
+            "${PATCH_SED_TOOL[@]}" "s|BUILDDIR=\"./build/dist\"|BUILDDIR=\"$build_directory/dist\"|g" "$source_directory/scripts/create-bundle.sh"
+            ;;
+        rtmpdump)
+            export XCFLAGS=-I$INSTALL_PREFIX/include
             ;;
     esac
 }
@@ -473,7 +481,7 @@ post_patch() {
             sudo mv "$INSTALL_PREFIX/bin/posh-darwin-arm64" "$INSTALL_PREFIX/bin/oh-my-posh"
             ;;
         helix)
-            rm -rf "$source_directory/../runtime/grammars/sources/"
+            sudo rm -rf "$source_directory/../runtime/grammars/sources/"
             sudo cp -rPf $source_directory/../runtime $INSTALL_PREFIX/libexec/helix/
             ;;
         vhdl_ls)
@@ -514,13 +522,13 @@ post_patch() {
             unset CFLAGS 2>/dev/null || true
             ;;
         ffmpeg)
-            sudo "${PATCH_SED_TOOL[@]}" 's/-Wl,-framework -Wl,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc
-            sudo "${PATCH_SED_TOOL[@]}" 's/-Wl,-framework,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc
+            sudo "${PATCH_SED_TOOL[@]}" 's/-Wl,-framework -Wl,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc || true
+            sudo "${PATCH_SED_TOOL[@]}" 's/-Wl,-framework,/-framework /g' $INSTALL_PREFIX/lib/pkgconfig/libav*.pc $INSTALL_PREFIX/lib/pkgconfig/libsw*.pc || true
             ;;
         postgres)
             unset DYLD_LIBRARY_PATH 2>/dev/null || true
             ;;
-        deno)
+        deno_cargo)
             unset RUSTFLAGS 2>/dev/null || true
             ;;
         openmp)
@@ -544,6 +552,17 @@ exec "$INSTALL_PREFIX/llvm/bin/llvm-config.binary" "\$@" | sed \\
     -e 's|/opt/homebrew/lib/|$INSTALL_PREFIX/lib/|g'
 EOF
             sudo chmod +x "$INSTALL_PREFIX/llvm/bin/llvm-config"
+            ;;
+        tablecruncher)
+            sudo rm -rf /Applications/Tablecruncher.app
+            sudo mv $build_directory/dist/Tablecruncher.app /Applications/
+            ;;
+        rtmpdump)
+            unset XCFLAGS || true
+            ;;
+        bgutil)
+            mkdir -p $HOME/.yt-dlp/plugins/bgutil-pot-provider
+            cp -rPf $source_directory/plugin/* $HOME/.yt-dlp/plugins/bgutil-pot-provider
             ;;
     esac
 }

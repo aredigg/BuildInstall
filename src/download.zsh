@@ -8,10 +8,10 @@ download() {
     local sig="${5}"
     local strip="${6:=YES}"
     local name="${name%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
+    status_print $name I "Download"
     # Debug print
     debug_print "(download) Name $name; cmd $cmd; url $url; dbr $dbr; sig $sig; strip $strip"
     # TODO possibility for url to contain several alternatives
-    status_print $name I "Download"
     case "$cmd" in
         https) download_https "$name" "$url" "$sig" "$strip" ;;
         git) download_git "$name" "$url" "$dbr" "$sig" ;;
@@ -44,7 +44,7 @@ download_git() {
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $branch
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" submodule update --init --recursive
             git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout $hash
-            status_print $name D "Cloning complete"
+            status_print $name D "Cloning completed"
         else
             if git -C "${BUILD_SOURCES_DIRECTORY}/${name}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
                 status_print $name I "Updating"
@@ -54,7 +54,7 @@ download_git() {
                 git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $branch
                 git -C "${BUILD_SOURCES_DIRECTORY}/${name}" pull || { error_code=$?; continue; }
                 git -C "${BUILD_SOURCES_DIRECTORY}/${name}" checkout -f $hash
-                status_print $name D "Update complete"
+                status_print $name D "Update completed"
             else
                 status_print $name I "Cleaning"
                 sudo rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
@@ -119,7 +119,7 @@ download_https() {
 
     # TODO check signatures
 
-    status_print $name D "Download complete"
+    status_print $name D "Download completed"
     extract "$name" "$filename" "$strip"
 }
 
@@ -130,8 +130,8 @@ extract() {
     local filename="${2}"
     local strip="${3}"
     # Debug print
+    status_print $name I "Extracting"
     debug_print "(extract) Name $name; filename $filename; strip $strip"
-
     local mime_types=(
         "application/x-gzip"            # .gz
         "application/gzip"              # .gz
@@ -144,7 +144,6 @@ extract() {
         "application/x-7z-compressed"   # .7z
         "application/x-lzip"            # .lz
     )
-    status_print $name I "Extracting"
     if [[ " ${mime_types[@]} " =~ " $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}") " ]]; then
         rm -rf "${BUILD_SOURCES_DIRECTORY}/${name}"
         mkdir -p "${BUILD_SOURCES_DIRECTORY}/${name}"
@@ -162,5 +161,5 @@ extract() {
         print -u2 "Unknown mime-type for <$filename>: $(file --brief --mime-type "${BUILD_SOURCES_DIRECTORY}/${filename}")"
         exit 4
     fi
-    status_print $name D "Extracting complete"
+    status_print $name D "Extract completed"
 }
