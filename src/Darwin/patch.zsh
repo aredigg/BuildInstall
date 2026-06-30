@@ -17,8 +17,9 @@ platform_setup() {
     export BI_RPATH_REL="-Wl,-rpath,@loader_path/../lib"
     export BI_RPATH_CMAKE='-DCMAKE_INSTALL_RPATH=@loader_path/../lib'
 
-    export PYTHON_EXEC=$(command -v python3)
-    # export RUSTFLAGS="-C opt-level=3 -C debuginfo=0 -C rpath=true -C link-arg=-Wl,-rpath,@loader_path/../lib $RUSTFLAGS"
+    export PYTHON_EXEC="$(command -v python3)"
+    export OPENSSL_DIR="$(openssl version -d | sed 's/.*"\(.*\)"/\1/')"
+    export SSL_CERT_DIR="$OPENSSL_DIR"
 }
 
 platform_setup_debug() {
@@ -348,14 +349,6 @@ pre_patch() {
     source_directory="${2}"
     build_directory="${3}"
     case "$name" in
-        openssl)
-            # There is also /System/Library/OpenSSL and /private/etc/ssl (LibreSSL dir)
-#            if [[ ! -f "$INSTALL_PREFIX/ssl/certs/cert.pem" ]]; then
-#                /usr/bin/security export -k /System/Library/Keychains/SystemRootCertificates.keychain -t certs -p > "$source_directory/keychain_root_certs.pem"
-#                sudo mkdir -p "$INSTALL_PREFIX/ssl/certs"
-#                sudo cp "$source_directory/keychain_root_certs.pem" "$INSTALL_PREFIX/ssl/certs/cert.pem"
-#            fi
-            ;;
         curl)
             "${PATCH_SED_TOOL[@]}" "s|\[unreleased\]|$(date '+%Y-%m-%d') \(Unsupported\)|g" "$source_directory/include/curl/curlver.h" ;;
         helix)
@@ -482,7 +475,7 @@ post_patch() {
             ;;
         helix)
             sudo rm -rf "$source_directory/../runtime/grammars/sources/"
-            sudo cp -rPf $source_directory/../runtime $INSTALL_PREFIX/libexec/helix/
+            sudo cp -rPf $source_directory/../runtime $INSTALL_PREFIX/libexec/helix/runtime
             ;;
         vhdl_ls)
             sudo mkdir -p $INSTALL_PREFIX/lib/rust_hdl/
@@ -564,6 +557,13 @@ EOF
             mkdir -p $HOME/.yt-dlp/plugins/bgutil-pot-provider
             cp -rPf $source_directory/plugin/* $HOME/.yt-dlp/plugins/bgutil-pot-provider
             ;;
+        jdtls)
+            # based on AUR script
+            sudo mkdir -p "$INSTALL_PREFIX/share/java/jdtls"
+            sudo cp -R "${source_directory}/"config_* "${source_directory}/features" "${source_directory}/plugins" "${source_directory}/bin" "$INSTALL_PREFIX/share/java/jdtls"
+            sudo mkdir -p "$INSTALL_PREFIX/bin"
+            sudo ln -fs "$INSTALL_PREFIX/share/java/jdtls/bin/jdtls" "$INSTALL_PREFIX/bin/jdtls"
+            ;;
     esac
 }
 
@@ -572,9 +572,6 @@ platform_env() {
     case "$name" in
         libtool)
             export LIBTOOLIZE="gnulibtoolize"
-            ;;
-        openssl)
-            export SSL_CERT_DIR="$INSTALL_PREFIX/ssl/certs"
             ;;
         cpython)
             export PATH="/Library/Frameworks/Python.framework/Versions/Current/bin:$PATH"

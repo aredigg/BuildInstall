@@ -1,80 +1,80 @@
-#,Version,Name,Kind,Options,Alternatives,Directory,Download Method,URL,Branch,Signature/Tag,Strip,Additional Manifest Directories
-Go Programming Language,1.26.4,golang,prebuilt,,go,,https,https://go.dev/dl/go1.26.4.darwin-arm64.tar.gz,,,,
-Oh-my-posh Shell Enhancement,,ohmyposh,golang,,oh-my-posh,src,git,https://github.com/JanDeDobbeleer/oh-my-posh.git,main,,,
-Cmake Build System,,cmake,configure,--parallel=$CONCURRENT_JOBS;--system-zlib;--system-bzip2;--system-curl;--;-DCMake_BUILD_LTO=ON;-DBUILD_TESTING=OFF;-DCMAKE_BUILD_TYPE=Release;-Wno-author,,,git,https://gitlab.kitware.com/cmake/cmake.git;https://github.com/Kitware/CMake.git,master,,,
-Ninja Build System,,ninja,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/ninja-build/ninja.git,master,,,
-Fast Light Toolkit GUI platform,,fltk,cmake,-DFLTK_BUILD_SHARED_LIBS=ON,,,git,https://github.com/fltk/fltk.git,master,,,
-Tablecruncher CSV editor,,tablecruncher,cmake,-DFLTKINCDIR=$INSTALL_PREFIX/include;-DFLTKLIBDIR=$INSTALL_PREFIX;-DMACOS_VERSION=$MACOSX_DEPLOYMENT_TARGET,,,git,https://github.com/Tablecruncher/tablecruncher.git,main,,,/Applications/Tablecruncher.app
-Rust Programming Language,nightly,rust,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz,,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz.asc,,
-Rust Programming Language Book Source,nightly,rust-src,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz,,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz.asc,,
-zig Programming Language,0.17.0,zig,prebuilt,,ziglang,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz,,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz.minisig,,
-Eclipse Java Language Server,1.60.0,jdtls,prebuilt,,,,https,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz,,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz.sha256,,
-Muon - Meson build system in C,0.7.0,muon,prebuilt,,,,https,https://muon.build/releases/v0.7.0-dev/muon-v0.7.0-dev-universal-macos.zip,,,NO,
-Package Metadata Toolkit,,pkgconf,muon,-Dwith-system-libdir=/usr/lib;-Dwith-system-includedir=$MACOS_SDK_PATH/usr/include,,,git,https://github.com/pkgconf/pkgconf.git,master,,,
-Brotli Compression Format,,brotli,cmake,,,,git,https://github.com/google/brotli.git,master,,,
-XZ Utils,,xz,cmake,,,,git,https://github.com/tukaani-project/xz.git,master,,,
-LZ4 Compression Algorithm,,lz4,makeonly,,,,git,https://github.com/lz4/lz4.git,dev,,,
-Zstandard Compression Algorithm,,zstd,makeonly,,,,git,https://github.com/facebook/zstd.git,dev,,,
-OpenSSL TLS and Crypto Library,,openssl,configure,--openssldir=$(openssl version -d | sed 's/.*"\(.*\)"/\1/');darwin64-arm64-cc;enable-ec_nistp_64_gcc_128,,,git,https://github.com/openssl/openssl.git,master,,,$(openssl version -d | sed 's/.*"\(.*\)"/\1/')
-LibTomMath Library in C,,libtommath,cmake,,,,git,https://github.com/libtom/libtommath.git,develop,,,
-Tcl Programming Language,9.0.3,tcl,configure,,,macosx,https,http://prdownloads.sourceforge.net/tcl/tcl9.0.3-src.tar.gz,,,,
-Tk GUI Toolkit,9.0.3,tk,configure,--with-tcl=${BUILD_BUILDS_DIRECTORY}/tcl;--enable-aqua=yes,,macosx,https,http://prdownloads.sourceforge.net/tcl/tk9.0.3-src.tar.gz,,,,
-mpdecimal for Arbitrary Precision Floating Point Arithmetic,4.0.1,mpdecimal,configure,,,,https,https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz,,96d33abb4bb0070c7be0fed4246cd38416188325f820468214471938545b1ac8,,
-Python Programming Language,3.15,cpython,configure,LDFLAGS=;LDFLAGS_NODIST=$BI_RPATH_NODIST;--enable-framework;--enable-optimizations;--with-lto;--with-dbmliborder=ndbm;--enable-ipv6;--with-system-expat;--with-system-libmpdec;--with-openssl-rpath=$INSTALL_PREFIX/lib,,,git,https://github.com/python/cpython.git,main,3.15,,/Library/Frameworks/Python.framework;/Applications/Python*
-uv Python Package Manager,,uv,cargo,,,crates/uv,git,https://github.com/astral-sh/uv.git,main,,,
-Flit Distribution Backend,,flit-core,uv,,,,,,,,,
-Core Utilities for Python Packages,,py_packaging,uv,,,,,,,,,
-Python Setup Build Backend,,setuptools,uv,,,,,,,,,
-Setuptools Rust extension plugin,,setuptools-rust,uv,,,,,,,,,
-Meson Build System,,meson,uv,,,,,,,,,
-PyPA Install Tool,,pip,uv,,,,,,,,,
-Python Bindings for Brotli,,py_brotli,uv,,,,,,,,,
-Pattern Matching of File Paths,,py_pathspec,uv
-Plugin and Hook Calling,,pluggy,uv,,binary,,,,,,,
-Canonical source for classifiers,,trove-classifiers,uv,,binary
-hatchling Python Build Backend,,hatchling,uv
-Mozilla CA Bundle,,py_certifi,uv
-DBus Protocol Wrapper,,jeepney,uv
-Cryptograhic Library for Python,,pycryptodomex,uv
-Python HTTP Library,,py_requests,uv
-HTTP client library,,urllib3,uv,,binary
-Websockets for Python,,py_websockets,uv
-Charset Normalizer,,charset-normalizer,uv
-Internationalized Domain Names in Applications,,idna,uv
-FFI to C for Python,,cffi,uv
-C Parser in Python,,pycparser,uv
-Python Interface To The cURL library,,pycurl,uv
-libcurl Bindings for Python,,curl-cffi,uv,,binary
-Implementing the SemVer scheme,,semantic-version,uv
-Build Crates,,maturin,uv
-Cryptograhpy for Python,,py_cryptography,uv
-ruff Python Linter and Code Formatter,,ruff,uv
-Python package and dependency manager,,py_pdm,uv,,binary
-Build Backend Used by PDM,,py_pdm-backend,uv
-Static Type Checking for Python,,basedpyright,uv,,binary
-HTTP/2 Library,,nghttp2,cmake,-DENABLE_LIB_ONLY=ON;-DENABLE_DOC=OFF,,,git,https://github.com/nghttp2/nghttp2.git,master,,,
-HTTP/3 Library,,nghttp3,cmake,-DENABLE_LIB_ONLY=ON,,,git,https://github.com/ngtcp2/nghttp3.git,main,,,
-libssh2 SSH Library,,libssh2,cmake,,,,git,https://github.com/libssh2/libssh2.git,master,,,
-RTMP streams toolkit,,rtmpdump,makeonly,SYS=darwin,,,git,https://git.ffmpeg.org/rtmpdump.git,master,,,
-Public Suffix List Library,,libpsl,meson,,,,git,https://github.com/rockdaboot/libpsl.git,master,,,
-Command Line Tool for URL,,curl,cmake,-DCURL_USE_OPENSSL=ON;-DCURL_USE_LIBPSL=ON;-DCURL_USE_GSSAPI=ON;-DCURL_LTO=ON;-DUSE_OPENSSL_QUIC=ON;-DUSE_APPLE_IDN=ON;-DCURL_CA_BUNDLE=$INSTALL_PREFIX/ssl/certs/cert.pem;-DCMAKE_OSX_SYSROOT=$MACOS_SDK_PATH,,,git,https://github.com/curl/curl.git,master,,,
-Z3 Theorem Prover,,z3,cmake,-DZ3_BUILD_PYTHON_BINDINGS=TRUE;-DZ3_INSTALL_PYTHON_BINDINGS=TRUE;-DZ3_BUILD_JAVA_BINDINGS=TRUE;-DZ3_INSTALL_JAVA_BINDINGS=TRUE;-DZ3_BUILD_GO_BINDINGS=ON;-DZ3_INSTALL_GO_BINDINGS=ON,,,git,https://github.com/Z3Prover/z3.git,master,,,
-FFMPEG Video and Audio Converter,,ffmpeg,configure,--enable-gpl;--enable-version3;--enable-nonfree;--enable-libxml2;--enable-openssl,,,git,https://git.ffmpeg.org/ffmpeg.git,master,,,
-Helix Post Modern Editor,,helix,cargo,,,helix-term,git,https://github.com/helix-editor/helix.git,master,,,
-ripgrep Recursive Search,,ripgrep,cargo,,,,git,https://github.com/BurntSushi/ripgrep.git,master,,,
-bat - A Cat Clone,,bat,cargo,,,,git,https://github.com/sharkdp/bat.git,master,,,
-skim Fuzzy Finder,,skim,cargo,,,,git,https://github.com/skim-rs/skim.git,master,,,
-eza Modern ls Alternative,,eza,cargo,,,,git,https://github.com/eza-community/eza.git,main,,,
-deno JavaScript and TypeScript Runtime,2.9.0,deno,prebuilt,,,,https,https://github.com/denoland/deno/releases/download/v2.9.0/deno-aarch64-apple-darwin.zip,,https://github.com/denoland/deno/releases/download/v2.9.0/deno-aarch64-apple-darwin.zip.sha256sum,NO,
-# zig Language Server,,zls,zig,,,,git,https://github.com/zigtools/zls.git,master,,,
-Audio Tags Toolkit,,mutagen,uv
-External JavaScript for yt-dlp,,yt-dlp-ejs,uv,,binary
-Markdown It for Python,,markdown-it-py,uv
-Markdown URL utilities,,mdurl,uv
-Pygments Syntax Highligting,,pygments,uv
-Python Dependency Management,,py_poetry,uv,,binary
-Poetry Build Backend,,poetry-core,uv
-Rich Text for Python,,py_rich,uv
-Bindings for FreeDesktop.org Secret Service API,,secretstorage,uv
-yt-dlp Audio and Video Downloader,,yt-dlp,uv,,,,,,,,,
-bgutil POO Token Provider,,bgutil,cargo,,,,git,https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs.git,master,,,
+#,Version,Description,Kind,Options,Alternatives,Directory,Download Method,URL,Branch,Signature/Tag,Strip,Additional Manifest Directories
+golang,1.26.4,Go Programming Language,prebuilt,,go,,https,https://go.dev/dl/go1.26.4.darwin-arm64.tar.gz,,,,
+ohmyposh,,Oh-my-posh Shell Enhancement,golang,,oh-my-posh,src,git,https://github.com/JanDeDobbeleer/oh-my-posh.git,main,,,
+cmake,,Cmake Build System,configure,--parallel=$CONCURRENT_JOBS;--system-zlib;--system-bzip2;--system-curl;--;-DCMake_BUILD_LTO=ON;-DBUILD_TESTING=OFF;-DCMAKE_BUILD_TYPE=Release;-Wno-author,,,git,https://gitlab.kitware.com/cmake/cmake.git;https://github.com/Kitware/CMake.git,master,,,
+ninja,,Ninja Build System,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/ninja-build/ninja.git,master,,,
+rust,nightly,Rust Programming Language,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz,,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz.asc,,
+rust-src,nightly,Rust Programming Language Book Source,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz,,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz.asc,,
+zig,0.17.0zig Programming Language,,prebuilt,,ziglang,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz,,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz.minisig,,
+jdtls,1.60.0,Eclipse Java Language Server,manifest,,,,https,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz,,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz.sha256,NO,
+muon,0.7.0,Muon - Meson build system in C,prebuilt,,,,https,https://muon.build/releases/v0.7.0-dev/muon-v0.7.0-dev-universal-macos.zip,,,NO,
+pkgconf,,Package Metadata Toolkit,muon,-Dwith-system-libdir=/usr/lib;-Dwith-system-includedir=$MACOS_SDK_PATH/usr/include,,,git,https://github.com/pkgconf/pkgconf.git,master,,,
+brotli,,Brotli Compression Format,cmake,,,,git,https://github.com/google/brotli.git,master,,,
+xz,,XZ Utils,cmake,,,,git,https://github.com/tukaani-project/xz.git,master,,,
+lz4,,LZ4 Compression Algorithm,makeonly,,,,git,https://github.com/lz4/lz4.git,dev,,,
+zstd,,Zstandard Compression Algorithm,makeonly,,,,git,https://github.com/facebook/zstd.git,dev,,,
+openssl,,OpenSSL TLS and Crypto Library,configure,--openssldir=$OPENSSL_DIR;darwin64-arm64-cc;enable-ec_nistp_64_gcc_128,,,git,https://github.com/openssl/openssl.git,master,,,$(openssl version -d | sed 's/.*"\(.*\)"/\1/')
+libtommath,,LibTomMath Library in C,cmake,,,,git,https://github.com/libtom/libtommath.git,develop,,,
+tcl,9.0.3,Tcl Programming Language,configure,,,macosx,https,http://prdownloads.sourceforge.net/tcl/tcl9.0.3-src.tar.gz,,,,
+tk,9.0.3,Tk GUI Toolkit,configure,--with-tcl=${BUILD_BUILDS_DIRECTORY}/tcl;--enable-aqua=yes,,macosx,https,http://prdownloads.sourceforge.net/tcl/tk9.0.3-src.tar.gz,,,,
+mpdecimal,4.0.1,mpdecimal for Arbitrary Precision Floating Point Arithmetic,configure,,,,https,https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz,,96d33abb4bb0070c7be0fed4246cd38416188325f820468214471938545b1ac8,,
+cpython,3.15,Python Programming Language,configure,LDFLAGS=;LDFLAGS_NODIST=$BI_RPATH_NODIST;--enable-framework;--enable-optimizations;--with-lto;--with-dbmliborder=ndbm;--enable-ipv6;--with-system-expat;--with-system-libmpdec;--with-openssl-rpath=$INSTALL_PREFIX/lib,,,git,https://github.com/python/cpython.git,main,3.15,,/Library/Frameworks/Python.framework;/Applications/Python*
+uv,,uv Python Package Manager,cargo,,,crates/uv,git,https://github.com/astral-sh/uv.git,main,,,
+flit-core,,Flit Distribution Backend,uv,,,,,,,,,
+py_packaging,,Core Utilities for Python Packages,uv,,,,,,,,,
+setuptools,,Python Setup Build Backend,uv,,,,,,,,,
+setuptools-rust,,Setuptools Rust extension plugin,uv,,,,,,,,,
+meson,,Meson Build System,uv,,,,,,,,,
+pip,,PyPA Install Tool,uv,,,,,,,,,
+py_brotli,,Python Bindings for Brotli,uv,,,,,,,,,
+py_pathspec,,Pattern Matching of File Paths,uv
+pluggy,,Plugin and Hook Calling,uv,,binary,,,,,,,
+trove-classifiers,,Canonical source for classifiers,uv,,binary
+hatchling,,hatchling Python Build Backend,uv
+py_certifi,,Mozilla CA Bundle,uv
+jeepney,,DBus Protocol Wrapper,uv
+pycryptodomex,,Cryptograhic Library for Python,uv
+py_requests,,Python HTTP Library,uv
+urllib3,,HTTP client library,uv,,binary
+py_websockets,,Websockets for Python,uv
+charset-normalizer,,Charset Normalizer,uv
+idna,,Internationalized Domain Names in Applications,uv
+cffi,,FFI to C for Python,uv
+pycparser,,C Parser in Python,uv
+pycurl,,Python Interface To The cURL library,uv
+curl-cffi,,libcurl Bindings for Python,uv,,binary
+semantic-version,,Implementing the SemVer scheme,uv
+maturin,,Build Crates,uv
+py_cryptography,,Cryptograhpy for Python,uv
+ruff,,ruff Python Linter and Code Formatter,uv
+py_pdm,,Python package and dependency manager,uv,,binary
+py_pdm-backend,,Build Backend Used by PDM,uv
+nodejs-wheel,,Node.JS,uv,,binary
+nodejs-wheel-binaries,,Node.JS,uv,,binary
+basedpyright,,Static Type Checking for Python,uv,,binary
+nghttp2,,HTTP/2 Library,cmake,-DENABLE_LIB_ONLY=ON;-DENABLE_DOC=OFF,,,git,https://github.com/nghttp2/nghttp2.git,master,,,
+nghttp3,,HTTP/3 Library,cmake,-DENABLE_LIB_ONLY=ON,,,git,https://github.com/ngtcp2/nghttp3.git,main,,,
+libssh2,,libssh2 SSH Library,cmake,,,,git,https://github.com/libssh2/libssh2.git,master,,,
+rtmpdump,,RTMP streams toolkit,makeonly,SYS=darwin,,,git,https://git.ffmpeg.org/rtmpdump.git,master,,,
+libpsl,,Public Suffix List Library,meson,,,,git,https://github.com/rockdaboot/libpsl.git,master,,,
+curl,,Command Line Tool for URL,cmake,-DCURL_USE_OPENSSL=ON;-DCURL_USE_LIBPSL=ON;-DCURL_USE_GSSAPI=ON;-DCURL_LTO=ON;-DUSE_OPENSSL_QUIC=ON;-DUSE_APPLE_IDN=ON;-DCURL_CA_BUNDLE=$OPENSSL_DIR/cert.pem;-DCMAKE_OSX_SYSROOT=$MACOS_SDK_PATH,,,git,https://github.com/curl/curl.git,master,,,
+z3,,Z3 Theorem Prover,cmake,-DZ3_BUILD_PYTHON_BINDINGS=TRUE;-DZ3_INSTALL_PYTHON_BINDINGS=TRUE;-DZ3_BUILD_JAVA_BINDINGS=TRUE;-DZ3_INSTALL_JAVA_BINDINGS=TRUE;-DZ3_BUILD_GO_BINDINGS=ON;-DZ3_INSTALL_GO_BINDINGS=ON,,,git,https://github.com/Z3Prover/z3.git,master,,,
+ffmpeg,,FFMPEG Video and Audio Converter,configure,--enable-gpl;--enable-version3;--enable-nonfree;--enable-libxml2;--enable-openssl,,,git,https://git.ffmpeg.org/ffmpeg.git,master,,,
+helix,,Helix Post Modern Editor,cargo,,,helix-term,git,https://github.com/helix-editor/helix.git,master,,,
+ripgrep,,ripgrep Recursive Search,cargo,,,,git,https://github.com/BurntSushi/ripgrep.git,master,,,
+bat,,bat - A Cat Clone,cargo,,,,git,https://github.com/sharkdp/bat.git,master,,,
+skim,,skim Fuzzy Finder,cargo,,,,git,https://github.com/skim-rs/skim.git,master,,,
+eza,,eza Modern ls Alternative,cargo,,,,git,https://github.com/eza-community/eza.git,main,,,
+deno,2.9.0,deno JavaScript and TypeScript Runtime,prebuilt,,,,https,https://github.com/denoland/deno/releases/download/v2.9.0/deno-aarch64-apple-darwin.zip,,https://github.com/denoland/deno/releases/download/v2.9.0/deno-aarch64-apple-darwin.zip.sha256sum,NO,
+# zls,,zig Language Server,zig,,,,git,https://github.com/zigtools/zls.git,master,,,
+mutagen,,Audio Tags Toolkit,uv
+yt-dlp-ejs,,External JavaScript for yt-dlp,uv,,binary
+markdown-it-py,,Markdown It for Python,uv
+mdurl,,Markdown URL utilities,uv
+pygments,,Pygments Syntax Highligting,uv
+py_poetry,,Python Dependency Management,uv,,binary
+poetry-core,,Poetry Build Backend,uv
+py_rich,,Rich Text for Python,uv
+secretstorage,,Bindings for FreeDesktop.org Secret Service API,uv
+yt-dlp,,yt-dlp Audio and Video Downloader,uv,,,,,,,,,
+bgutil,,bgutil POO Token Provider,cargo,,,,git,https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs.git,master,,,

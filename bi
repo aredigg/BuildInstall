@@ -19,6 +19,7 @@ BI_DIRECTORY="${0:A:h}"
 BI_SYSTEM_PREFIX="/usr/local"
 BI_SYSTEM_TMP="/tmp"
 BI_SYSTEM_FILE="utilities.csv"
+BI_SKIP_TIME="43200"
 
 typeset -g BI_DEBUG_COMMAND
 typeset -g BI_DEBUG_LOCATION

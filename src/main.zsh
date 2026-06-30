@@ -17,7 +17,7 @@ main() {
         for (( i = 1; i <= ${#lines}; i++ )); do
             line="${lines[i]}"
             IFS=',' read -r \
-            comment version name kind config_options alt_options directory \
+            name version comment kind config_options alt_options directory \
             download_command download_url download_branch download_sig \
             extract_strip manifesting overflow <<< "$line"
             if [[ -n $overflow ]]; then
@@ -45,7 +45,7 @@ main() {
         for (( i = ${#lines}; i >= 1; i-- )); do
             line="${lines[i]}"
             IFS=',' read -r \
-            comment version name kind config_options alt_options directory \
+            name version comment kind config_options alt_options directory \
             download_command download_url download_branch download_sig \
             extract_strip manifesting overflow <<< "$line"
             if [[ -n $overflow ]]; then
@@ -65,7 +65,7 @@ main() {
         for (( i = 1; i <= ${#lines}; i++ )); do
             line="${lines[i]}"
             IFS=',' read -r \
-            comment version name kind config_options alt_options directory \
+            name version comment kind config_options alt_options directory \
             download_command download_url download_branch download_sig \
             extract_strip manifesting overflow <<< "$line"
             if [[ -n $overflow ]]; then

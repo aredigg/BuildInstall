@@ -1,5 +1,5 @@
 TODO LIST
 
+* Another solution to manifesting when already installed (do not delete before install)
 * Check signatures (gnupg) (codesign -d -vv /usr/local/lib/libomp.dylib)
 * Better retries
-

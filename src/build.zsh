@@ -286,10 +286,12 @@ build_uv() {
     local package="${name#py_}"
     package="${package%(_bootstrap|_stage_1|_stage_2|_stage_3)}"
     local build_option="${4}"
-    local manifesting="${5}"
+    local install_dir=$($PYTHON_EXEC -c "import sysconfig; print(';'.join(list(sysconfig.get_paths().values())))")
+    local manifesting="$install_dir;${5}"
     # Debug print
     debug_print "(build_uv) Name $name; Package $package; config_settings $config_settings; build_option $build_option"
-    debug_print "           source_directory $source_directory"
+    debug_print "           source_directory $source_directory; manifesting $manifesting"
+    debug_print "           python_exec $PYTHON_EXEC"
     local -x LDFLAGS="$BI_RPATH_REL $LDFLAGS"
 
     # The manifest is very likely empty on macOS
@@ -411,7 +413,9 @@ build_golang() {
             mkdir -p "$build_directory"
             cd "$build_directory"
         fi
-        local -x GOCACHE="$build_directory/gocache"
+        local -x GOPATH="$build_directory/go"
+        local -x GOCACHE="$build_directory/go-cache"
+        local -x GOMODCACHE="$build_directory/go/pkg/mod"
         # local -x CGO_ENABLED=0
         status_print $name I "Building"
         go build -C "$source_directory" -trimpath -ldflags="-s -w -linkmode=external -extldflags=$BI_RPATH_REL" -o ${build_directory}/${name} .
@@ -575,11 +579,13 @@ no_build() {
         if [[ -n "$install_script" || -n "$custom_directory" ]]; then
             if [[ ! -d "${source_directory}/${install_script}" && -x "${source_directory}/${install_script}" ]]; then
                 # TODO some safety questions and checks
+                debug_print "Script: sudo ${source_directory}/${install_script} ${install_options[@]}"
                 sudo "${source_directory}/${install_script}" "${install_options[@]}"
             else
                 if [[ ! -d "$INSTALL_PREFIX/${custom_directory}" ]]; then
                     sudo mkdir -p "$INSTALL_PREFIX/${custom_directory}"
                 fi
+                debug_print "Copy: sudo cp -rPf $source_directory/* $INSTALL_PREFIX/${custom_directory}/"
                 sudo cp -rPf "$source_directory"/* "$INSTALL_PREFIX/${custom_directory}/"
             fi
         else
@@ -588,6 +594,7 @@ no_build() {
                 if [[ ! -x "$count_files[1]" ]]; then
                     chmod +x "$count_files[1]"
                 fi
+                debug_print "Copy: sudo cp -Pf $count_files[1] $INSTALL_PREFIX/bin/"
                 sudo cp -Pf "$count_files[1]" "$INSTALL_PREFIX/bin/"
             else
                 local directories=(bin etc include lib libexec man sbin share)
@@ -595,12 +602,14 @@ no_build() {
                 local copied=0
                 for directory in "${directories[@]}"; do
                     if [[ -d "$source_directory/$directory" ]]; then
+                        debug_print "Copy: sudo cp -rPf $source_directory/$directory $INSTALL_PREFIX/"
                         sudo cp -rPf "$source_directory/$directory" "$INSTALL_PREFIX/"
                         copied=1
                     fi
                 done
                 if (( copied == 0 )); then
                     sudo mkdir -p "$INSTALL_PREFIX/share/$name"
+                    debug_print "Copy: sudo cp -rPf $source_directory/* $INSTALL_PREFIX/share/$name/"
                     sudo cp -rPf "$source_directory"/* "$INSTALL_PREFIX/share/$name/"
                 fi
             fi

@@ -59,7 +59,7 @@ debug_print() {
 modified() {
     if [[ -e "$1" ]]; then
         local mtime=$(zstat +mtime -- "$1")
-        local threshold=$(( $EPOCHSECONDS - 43200 ))
+        local threshold=$(( $EPOCHSECONDS - $BI_SKIP_TIME ))
         if (( mtime > threshold )); then
             debug_print "(modified) $mtime > $threshold = true, File $1"
             return 0
