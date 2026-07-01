@@ -475,6 +475,7 @@ post_patch() {
             ;;
         helix)
             sudo rm -rf "$source_directory/../runtime/grammars/sources/"
+            sudo mkdir -p $INSTALL_PREFIX/libexec/helix/runtime
             sudo cp -rPf $source_directory/../runtime $INSTALL_PREFIX/libexec/helix/runtime
             ;;
         vhdl_ls)
