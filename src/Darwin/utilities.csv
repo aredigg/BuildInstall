@@ -5,15 +5,15 @@ cmake,,Cmake Build System,configure,--parallel=$CONCURRENT_JOBS;--system-zlib;--
 ninja,,Ninja Build System,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/ninja-build/ninja.git,master,,,
 rust,nightly,Rust Programming Language,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz,,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz.asc,,
 rust-src,nightly,Rust Programming Language Book Source,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz,,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz.asc,,
-zig,0.17.0,zig Programming Language,,prebuilt,,ziglang,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz,,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz.minisig,,
+zig,0.17.0,zig Programming Language,prebuilt,,ziglang,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz,,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz.minisig,,
 jdtls,1.60.0,Eclipse Java Language Server,manifest,,,,https,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz,,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz.sha256,NO,
 muon,0.7.0,Muon - Meson build system in C,prebuilt,,,,https,https://muon.build/releases/v0.7.0-dev/muon-v0.7.0-dev-universal-macos.zip,,,NO,
-pkgconf,,Package Metadata Toolkit,muon,-Dwith-system-libdir=/usr/lib;-Dwith-system-includedir=$MACOS_SDK_PATH/usr/include,,,git,https://github.com/pkgconf/pkgconf.git,master,,,
+pkgconf,,Package Metadata Toolkit,muon,-Dwith-system-libdir=/usr/lib;-Dwith-system-includedir=$MACOS_SDK_PATH/usr/include,,,git,https://github.com/pkgconf/pkgconf.git,main,,,
 brotli,,Brotli Compression Format,cmake,,,,git,https://github.com/google/brotli.git,master,,,
 xz,,XZ Utils,cmake,,,,git,https://github.com/tukaani-project/xz.git,master,,,
 lz4,,LZ4 Compression Algorithm,makeonly,,,,git,https://github.com/lz4/lz4.git,dev,,,
 zstd,,Zstandard Compression Algorithm,makeonly,,,,git,https://github.com/facebook/zstd.git,dev,,,
-openssl,,OpenSSL TLS and Crypto Library,configure,--openssldir=$OPENSSL_DIR;darwin64-arm64-cc;enable-ec_nistp_64_gcc_128,,,git,https://github.com/openssl/openssl.git,master,,,$(openssl version -d | sed 's/.*"\(.*\)"/\1/')
+openssl,,OpenSSL TLS and Crypto Library,configure,--openssldir=$OPENSSL_DIR;darwin64-arm64-cc;enable-ec_nistp_64_gcc_128,,,git,https://github.com/openssl/openssl.git,master,,,$OPENSSL_DIR
 libtommath,,LibTomMath Library in C,cmake,,,,git,https://github.com/libtom/libtommath.git,develop,,,
 tcl,9.0.3,Tcl Programming Language,configure,,,macosx,https,http://prdownloads.sourceforge.net/tcl/tcl9.0.3-src.tar.gz,,,,
 tk,9.0.3,Tk GUI Toolkit,configure,--with-tcl=${BUILD_BUILDS_DIRECTORY}/tcl;--enable-aqua=yes,,macosx,https,http://prdownloads.sourceforge.net/tcl/tk9.0.3-src.tar.gz,,,,
@@ -65,7 +65,7 @@ ripgrep,,ripgrep Recursive Search,cargo,,,,git,https://github.com/BurntSushi/rip
 bat,,bat - A Cat Clone,cargo,,,,git,https://github.com/sharkdp/bat.git,master,,,
 skim,,skim Fuzzy Finder,cargo,,,,git,https://github.com/skim-rs/skim.git,master,,,
 eza,,eza Modern ls Alternative,cargo,,,,git,https://github.com/eza-community/eza.git,main,,,
-deno,2.9.0,deno JavaScript and TypeScript Runtime,prebuilt,,,,https,https://github.com/denoland/deno/releases/download/v2.9.0/deno-aarch64-apple-darwin.zip,,https://github.com/denoland/deno/releases/download/v2.9.0/deno-aarch64-apple-darwin.zip.sha256sum,NO,
+deno,2.9.2,deno JavaScript and TypeScript Runtime,prebuilt,,,,https,https://github.com/denoland/deno/releases/download/v2.9.2/deno-aarch64-apple-darwin.zip,,https://github.com/denoland/deno/releases/download/v2.9.2/deno-aarch64-apple-darwin.zip.sha256sum,NO,
 # zls,,zig Language Server,zig,,,,git,https://github.com/zigtools/zls.git,master,,,
 mutagen,,Audio Tags Toolkit,uv
 yt-dlp-ejs,,External JavaScript for yt-dlp,uv,,binary
