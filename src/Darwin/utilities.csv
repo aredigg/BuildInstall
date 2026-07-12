@@ -5,7 +5,7 @@ cmake,,Cmake Build System,configure,--parallel=$CONCURRENT_JOBS;--system-zlib;--
 ninja,,Ninja Build System,cmake,-DBUILD_TESTING=OFF,,,git,https://github.com/ninja-build/ninja.git,master,,,
 rust,nightly,Rust Programming Language,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz,,https://static.rust-lang.org/dist/rust-nightly-aarch64-apple-darwin.tar.xz.asc,,
 rust-src,nightly,Rust Programming Language Book Source,prebuilt,--prefix=$INSTALL_PREFIX,install.sh,,https,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz,,https://static.rust-lang.org/dist/rust-src-nightly.tar.xz.asc,,
-zig,0.17.0zig Programming Language,,prebuilt,,ziglang,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz,,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz.minisig,,
+zig,0.17.0,zig Programming Language,,prebuilt,,ziglang,,https,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz,,https://ziglang.org/builds/zig-aarch64-macos-0.17.0-dev.986+f3544a707.tar.xz.minisig,,
 jdtls,1.60.0,Eclipse Java Language Server,manifest,,,,https,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz,,https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz.sha256,NO,
 muon,0.7.0,Muon - Meson build system in C,prebuilt,,,,https,https://muon.build/releases/v0.7.0-dev/muon-v0.7.0-dev-universal-macos.zip,,,NO,
 pkgconf,,Package Metadata Toolkit,muon,-Dwith-system-libdir=/usr/lib;-Dwith-system-includedir=$MACOS_SDK_PATH/usr/include,,,git,https://github.com/pkgconf/pkgconf.git,master,,,
@@ -78,3 +78,7 @@ py_rich,,Rich Text for Python,uv
 secretstorage,,Bindings for FreeDesktop.org Secret Service API,uv
 yt-dlp,,yt-dlp Audio and Video Downloader,uv,,,,,,,,,
 bgutil,,bgutil POO Token Provider,cargo,,,,git,https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs.git,master,,,
+typescript-language-server,,TypeScript & JavaScript Language Server,npm,,,,git,https://github.com/typescript-language-server/typescript-language-server.git,master,,,
+bash-language-server,,A language server for Bash,npm,,,,git,https://github.com/bash-lsp/bash-language-server.git,main,,,
+superhtml,,HTML LSP Language Library,zig,,,,git,https://github.com/kristoff-it/superhtml.git,main,,,
+shfmt,,A shell formatter with bash and zsh support,golang,,,cmd/shfmt,git,https://github.com/mvdan/sh.git,master,,,

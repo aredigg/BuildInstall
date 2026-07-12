@@ -56,15 +56,15 @@ debug_print() {
     fi
 }
 
-modified() {
+within_threshold() {
     if [[ -e "$1" ]]; then
         local mtime=$(zstat +mtime -- "$1")
         local threshold=$(( $EPOCHSECONDS - $BI_SKIP_TIME ))
         if (( mtime > threshold )); then
-            debug_print "(modified) $mtime > $threshold = true, File $1"
+            debug_print "(within_threshold) $mtime > $threshold = true, File $1"
             return 0
         fi
-        debug_print "(modified) $mtime > $threshold = false, File $1"
+        debug_print "(within_threshold) $mtime > $threshold = false, File $1"
     fi
     return 1
 }

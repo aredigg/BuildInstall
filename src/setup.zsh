@@ -68,7 +68,7 @@ parse() {
     fi
 
     # Display version
-    if [[ $INSTALL_COMMAND = "version" ]]; then
+    if [[ $INSTALL_COMMAND == "version" ]]; then
         print "$BI_VERSION"
         exit 0
     fi
@@ -124,14 +124,17 @@ setup() {
     fi
 
     # We need sudo access to install
-    sudo -K
-    sudo -vp "Please enter password to allow system install: "
-    # Keep sudo alive
-    { while kill -0 "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
-    BI_SUDO_PID=$!
+    if [[ $INSTALL_COMMAND != "print" ]]; then
+        sudo -K
+        sudo -vp "Please enter password to allow system install: "
+        # Keep sudo alive
+        { while kill -0 "$BI_SCRIPT_PID" 2>/dev/null; do sudo -nv || exit; sleep 60 || exit; done 2>/dev/null & }
+        BI_SUDO_PID=$!
+        print -n "$(tput cuu1)\r"
+    fi
 
     # If clean requested
-    if [[ $INSTALL_COMMAND = "clean" ]]; then
+    if [[ $INSTALL_COMMAND == "clean" ]]; then
         print "Cleaning"
         if [[ -n "$INSTALL_TEMP" && -d "$INSTALL_TEMP/bi" ]]; then
             print "Removing temporary directory"
@@ -208,8 +211,10 @@ setup() {
     fi
 
     # Remove cargo folder
-    sudo rm -rf "$HOME/.cargo"
-    platform_cargo
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        sudo rm -rf "$HOME/.cargo"
+        platform_cargo
+    fi
 
 
     debug_print "Setup Complete"

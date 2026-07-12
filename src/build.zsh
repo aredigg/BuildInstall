@@ -54,6 +54,7 @@ build() {
         npm) build_deno "$name" "$src" "$config" "$manifesting" ;;
         manifest) only_manifest "$name" ;;
         prebuilt) no_build "$name" "$src" "$config" "$alt_options" "$manifesting" ;;
+        swift) build_swift "$name" "$src" "$bld" "$config" "$manifesting" ;;
         uv) build_uv "$name" "$src" "$config" "$alt_options" "$manifesting" ;;
         zig) build_zig "$name" "$src" "$bld" "$config" "$manifesting" ;;
         custom) ;;
@@ -74,34 +75,39 @@ build() {
     fi
 }
 
+snapshot_manifest() {
+    local manifesting="$1"
+    local snapshot="$2"
+    local entry directory
+    local -a directories=( "$INSTALL_PREFIX" )
+    for entry in ${(s:;:)manifesting}; do
+        local -a matches=( ${~entry}(N) )
+        directories+=( "${matches[@]}" )
+    done
+    {
+    for directory in "${directories[@]}"; do
+        [[ -e "$directory" || -L "$directory" ]] || continue
+        find "$directory" \( -type f -o -type l \) -print 2>/dev/null || true
+    done
+    } | sort -u > "$snapshot"
+}
+
 create_premanifest() {
     local name="${1}"
     local manifesting="${2}"
-    local dirs
     debug_print "(create_premanifest) Name $name Manifesting $manifesting"
-    status_print $name I "Manifesting"
-    {
-        find "$INSTALL_PREFIX" -type f 2>/dev/null || true
-        for dirs in ${(s:;:)manifesting}; do
-            find $~dirs -type f 2>/dev/null || true
-        done
-    } | sort -u > "${INSTALL_MANIFESTS}/${name}.pre-manifest"
+    status_print $name I "Snapshoting"
+    snapshot_manifest "$manifesting" "${INSTALL_MANIFESTS}/${name}.pre-manifest"
 }
 
 complete_postmanifest() {
     local name="${1}"
     local manifesting="${2}"
-    local dirs
     debug_print "(complete_postmanifest) Name $name Manifesting $manifesting"
+    status_print $name I "Snapshoting"
+    snapshot_manifest "$manifesting" "${INSTALL_MANIFESTS}/${name}.post-manifest"
     status_print $name I "Manifesting"
-    {
-        find "$INSTALL_PREFIX" -type f 2>/dev/null || true
-        for dirs in ${(s:;:)manifesting}; do
-            find $~dirs -type f 2>/dev/null || true
-        done
-    } | sort -u > "${INSTALL_MANIFESTS}/${name}.post-manifest"
-    status_print $name I "Manifesting"
-    comm -13 "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest" >> "$INSTALL_MANIFESTS/$name.manifest"
+    comm -13 "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest" > "$INSTALL_MANIFESTS/$name.manifest"
     rm -f "$INSTALL_MANIFESTS/$name.pre-manifest" "$INSTALL_MANIFESTS/$name.post-manifest"
     if [[ $INSTALL_ARCHIVE == ON ]]; then
         create_archive $name "$INSTALL_MANIFESTS/$name.manifest"
@@ -123,11 +129,10 @@ uninstall_manifested() {
             # empty
             return
         fi
-        # extract the directory names from the filenames and sort
-        local -U directories=( "${files:h}" )
-        directories=( "${(O)directories[@]}" )
         # remove the files
         debug_print "(uninstall_manifested) Name $name Removing files"
+        # sort
+        files=( "${(O)files[@]}" )
         for file in "${files[@]}"; do
             if [[ -f "$file" || -L "$file" ]]; then
                 sudo rm -f "$file"
@@ -135,8 +140,11 @@ uninstall_manifested() {
         done
         # attempt to remove directories if empty
         debug_print "(uninstall_manifested) Name $name Cleaning directories"
+        # extract the directory names from the filenames and sort
+        local -U directories=( "${files:h}" )
+        directories=( "${(O)directories[@]}" )
         for directory in "${directories[@]}"; do
-            if [[ -d "$directory" ]]; then
+            if [[ -d "$directory" && ! -L "$directory" ]]; then
                 sudo rmdir "$directory" 2>/dev/null || true
             fi
         done
@@ -148,6 +156,7 @@ uninstall_manifested() {
 
 # Can be used if custom install on os-specific patches
 only_manifest() {
+    local name="${1}"
     if [[ $INSTALL_COMMAND == "install" ]]; then
         uninstall_manifested "$name"
         create_premanifest "$name" "$manifesting"
@@ -355,7 +364,7 @@ build_cargo() {
 build_deno() {
     local name="${1}"
     local source_directory="${2}"
-    local target="${3}"
+    local target="${3:=$name}"
     local manifesting="${4}"
     # Debug print
     debug_print "(build_deno) Name $name; Target $target"
@@ -368,6 +377,34 @@ build_deno() {
         status_print $name D "Install completed"
     elif [[ $INSTALL_COMMAND == "remove" ]]; then
         sudo deno uninstall --global --root "$INSTALL_PREFIX" $name
+    fi
+}
+
+build_swift() {
+    local name="${1}"
+    local source_directory="${2}"
+    local build_directory="${3}"
+    local -a swift_options
+    swift_options+=( "${(@es:;:)4}" )
+    local manifesting="${5}"
+    # Debug print
+    debug_print "(build_swift) Name $name; swift_options $swift_options"
+    debug_print "              source_directory $source_directory; build_directory $build_directory"
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        status_print $name I "Building"
+        mkdir -p "$build_directory"
+        swift build -j $CONCURRENT_JOBS -c release --package-path "$source_directory" --scratch-path "$build_directory"
+        uninstall_manifested "$name"
+        create_premanifest "$name" "$manifesting"
+        status_print $name I "Installing"
+        # TODO find a better solution
+        local bin_path=$(swift build -j $CONCURRENT_JOBS -c release --show-bin-path --package-path "$source_directory" --scratch-path "$build_directory")
+        local bin_name=$(swift package dump-package | jq -r '.targets[] | select(.type == "executable") | .name')
+        sudo mkdir -p "$INSTALL_PREFIX/bin"
+        sudo install -Dm755 $bin_path/$bin_name "$INSTALL_PREFIX/bin/$bin_name"
+        status_print $name D "Install completed"
+    elif [[ $INSTALL_COMMAND == "remove" ]]; then
+        uninstall_manifested "$name"
     fi
 }
 
@@ -402,7 +439,7 @@ build_golang() {
     local build_directory="${3}"
     local -a go_options
     go_options+=( "${(@es:;:)4}" )
-    local binary_name="${5}"
+    local binary_name="${5:=$name}"
     local manifesting="${6}"
     # Debug print
     debug_print "(build_golang) Name $name; go_options $go_options; binary_name $binary_name"

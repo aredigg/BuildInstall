@@ -27,15 +27,15 @@ main() {
             if [[ ! -n $INSTALL_UTILITY || $INSTALL_UTILITY == "$name" ]]; then
                 print "<$name> <$kind> <$config_options> <$alt_options> <$directory> <$download_command> <$download_url> <$download_branch> <$download_sig> <$extract_strip> <$manifesting>"
                 print -u2 "<$name> <$kind> <$config_options> <$alt_options> <$directory> <$download_command> <$download_url> <$download_branch> <$download_sig> <$extract_strip> <$manifesting>"
-                if ! modified "$INSTALL_MANIFESTS/${name}.manifest"; then
+                if ! within_threshold "$INSTALL_MANIFESTS/${name}.manifest"; then
                     status_print $name I "Preparing"
                     download "$name" "$download_command" "$download_url" "$download_branch" "$download_sig" "$extract_strip"
                     if [[ ! $INSTALL_COMMAND = "download" ]]; then
                         build "$name" "$kind" "$config_options" "$alt_options" "$directory" "$manifesting"
                     fi
                 else
-                    # We skip also when less than 12 hours since last build
-                    status_print $name I "Skip build 12 hrs"
+                    # We skip also when less than BI_SKIP_TIME since last build
+                    status_print $name I "Skip build, less than $(( $BI_SKIP_TIME / 3600)) hrs since last build"
                 fi
             fi
             platform_env $name
@@ -78,4 +78,5 @@ main() {
             fi
         done
     fi
+    status_print "SCRIPT" D "Completed"
 }

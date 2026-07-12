@@ -9,9 +9,11 @@ platform_setup() {
     local cpus="$(getconf _NPROCESSORS_ONLN)"
     CONCURRENT_JOBS=$(( $cpus + $cpus >> 1))
     # metal toolchain
-    if ! xcrun --find metal >/dev/null 2>&1; then
-        xcodebuild -downloadComponent MetalToolchain
-        sudo xcodebuild -downloadComponent MetalToolchain
+    if [[ $INSTALL_COMMAND == "install" ]]; then
+        if ! xcrun --find metal >/dev/null 2>&1; then
+            xcodebuild -downloadComponent MetalToolchain
+            sudo xcodebuild -downloadComponent MetalToolchain
+        fi
     fi
     export BI_RPATH_NODIST="-Wl,-rpath,$INSTALL_PREFIX/lib"
     export BI_RPATH_REL="-Wl,-rpath,@loader_path/../lib"
